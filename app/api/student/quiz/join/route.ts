@@ -8,8 +8,7 @@ export async function POST(req: NextRequest) {
   const request = await req.json();
   try {
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
-    // const student_id: string|undefined = token?.user_id?.toString();
-    const student_id = 'M3Ij6MAOdMLtmuNH5zY2';
+    const student_id: string|undefined = token?.user_id?.toString();
 
     const access_code: string = request.access_code;
   

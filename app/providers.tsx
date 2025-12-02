@@ -16,11 +16,9 @@ export function Providers({children}: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <HeroUIProvider>
-        <NextThemesProvider attribute="class" defaultTheme="dark">
           <Provider store={storeRef.current}>
             {children}
           </Provider>
-        </NextThemesProvider>
       </HeroUIProvider>
     </SessionProvider>
   );

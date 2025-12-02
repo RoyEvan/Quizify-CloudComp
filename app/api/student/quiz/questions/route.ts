@@ -190,16 +190,13 @@ export async function GET(req: NextRequest) {
     const studentQuestionSnap = await studentQuestionCol
       .where('student_id', '==', student_id)
       .where('quiz_id', '==', quizData._id)
-      .get();
-    
-    console.log(studentQuestionSnap.docs[0]);
-    
+      .get();    
 
     const studentQuizQuestionSnaps = await studentQuestionSnap.docs[0].ref
       .collection('questions')
       .get();
-    const studentQuizQuestionData = studentQuizQuestionSnaps.docs.map((doc) => {
-      return { id: doc.id, ...doc.data() };
+    const studentQuizQuestionData = studentQuizQuestionSnaps.docs.map((doc) => {      
+      return { _id: doc.id, ...doc.data() };
     });
 
     const questionSnaps = await quizCol
@@ -207,7 +204,7 @@ export async function GET(req: NextRequest) {
       .collection('questions')
       .get();
     const questionData = questionSnaps.docs.map((doc) => {
-      return { _id: doc.id, ...doc.data() };
+      return { question_id: doc.id, ...doc.data() };
     });
     
     const question_join = studentQuizQuestionData;
@@ -217,11 +214,8 @@ export async function GET(req: NextRequest) {
     const studentQuestionData: any = { _id: sq_id, ...studentQuestionSnap.docs[0].data()};
     studentQuestionData.questions = questionData.map((item: any) => {
       const found = question_join.find((element: any) => {
-        return item.question_id.toString() == element.id.toString();
+        return item.question_id == element.question_id;
       });
-
-      // console.log(found);
-      
       
       return {
         ...item,

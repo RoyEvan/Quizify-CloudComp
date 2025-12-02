@@ -37,8 +37,11 @@ export async function POST(req: NextRequest) {
   try {
     const request = await req.json();
     const quiz_id: string = request.quiz_id!;
+
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
     const student_id: string|undefined = token?.user_id?.toString();
+
+    
 
     // Mengecek apakah student_id dan quiz_id sudah diinputkan
     if(!quiz_id || !student_id) {
@@ -237,7 +240,8 @@ export async function POST(req: NextRequest) {
       // }
 
       const insertStudentQuestionDoc = await studentQuestionCol.add(randomised);
-      await insertStudentQuestionDoc.collection('questions').add(randomisedQuestions)
+      const questionsCollection = insertStudentQuestionDoc.collection('questions');
+      await Promise.all(randomisedQuestions.map(async (question: any) => await questionsCollection.add(question)));
       await quizSnap.ref.update({
         student_attempt: FieldValue.arrayUnion(student_id),
         student_joined: FieldValue.arrayRemove(student_id)

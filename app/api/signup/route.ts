@@ -6,31 +6,52 @@ import { NextRequest, NextResponse } from "next/server";
 
 async function signup(type: string, email: string, name: string) {
   const session = client.startSession();
-  let id: ObjectId | null = null;
+  let id: string = '';
   try {
     session.startTransaction();
 
     if(type === "student") {
-      id = (await database
-        .collection("students")
-        .insertOne({
-          cur_quiz_id: "",
-          email,
-          nickname: name.split(" ")[0],
-          fullname: name,
-          quiz_joined: [],
-          quiz_done: [],
-        }, { session })).insertedId;
+      // MongoDB Code
+      // id = (await database
+      //   .collection("students")
+      //   .insertOne({
+      //     cur_quiz_id: "",
+      //     email,
+      //     nickname: name.split(" ")[0],
+      //     fullname: name,
+      //     quiz_joined: [],
+      //     quiz_done: [],
+      //   }, { session })).insertedId;
+      
+      const newStudentSnap = await studentCol.add({
+        cur_quiz_id: "",
+        email,
+        nickname: name.split(" ")[0],
+        fullname: name,
+        quiz_joined: [],
+        quiz_done: [],
+      });
+
+      id = newStudentSnap.id;
     }
     else if(type === "teacher") {
-      id = (await database
-        .collection("teachers")
-        .insertOne({
-          email,
-          nickname: name.split(" ")[0],
-          fullname: name,
-          quiz_created: [],
-        }, { session })).insertedId;
+      // id = (await database
+      //   .collection("teachers")
+      //   .insertOne({
+      //     email,
+      //     nickname: name.split(" ")[0],
+      //     fullname: name,
+      //     quiz_created: [],
+      //   }, { session })).insertedId;
+
+      const newTeacherSnap = await teacherCol.add({
+        email,
+        nickname: name.split(" ")[0],
+        fullname: name,
+        quiz_created: [],
+      });
+
+      id = newTeacherSnap.id;
     }
     else {
       throw new Error("Invalid Type of User");

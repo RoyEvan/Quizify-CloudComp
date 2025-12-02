@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
   try {
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
     const student_id: string = token!.user_id!.toString();
-    // const student_id: string = 'M3Ij6MAOdMLtmuNH5zY2';
     
     // Mengecek apakah student_id dan quiz_id sudah diinputkan
     if(!student_id || student_id.trim() == "") {
@@ -141,8 +140,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest){
   try {
     const token = await getToken({req,secret:process.env.QUIZIFY_NEXTAUTH_SECRET});
-    // const student_id: string = token!.user_id!.toString();
-    const student_id: string = "M3Ij6MAOdMLtmuNH5zY2";
+    const student_id: string = token!.user_id!.toString();
 
     // const [quiz] = await database
     //   .collection("students")

@@ -28,3 +28,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.pilgan-item > span  {
+  display: none;
+} 
+
+.pilgan-item[data-selected=true] .pilgan {
+  background-color: #006fee;
+  transition: all 0.16s ease;
+}

@@ -57,7 +57,9 @@ const fetchStudentQuizActive = createAppAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
+      console.log("SJAK")
       const response = await client.get<[]>("/api/student/quiz/questions");
+      console.log(response.data)
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error); // Use rejectWithValue to pass the error message
@@ -100,7 +102,7 @@ const postStudentAttemptQuiz = createAppAsyncThunk(
       });
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error); // Use rejectWithValue to pass the error message
+      return rejectWithValue(error); 
     }
   }
 );
@@ -215,6 +217,7 @@ const studentSlice = createSlice({
       })
       .addCase(fetchStudentQuizActive.fulfilled, (state, action) => {
         state.quizActive = action.payload;
+        console.log(action.payload)
         state.status = "succeeded";
         state.msg = action.payload.msg;
       })
@@ -222,6 +225,8 @@ const studentSlice = createSlice({
         state.status = "failed";
         state.error = action.payload.status;
         state.msg = action.payload.message;
+        console.log(action.payload)
+
       })
 
       // JOIN QUIZ STUDENT

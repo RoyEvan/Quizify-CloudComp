@@ -107,10 +107,11 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
   const updateAnswer = async (data: string | number | boolean) => {
     try {
       setAddRequestStatus("pending");
+      console.log("SASAASASA", questionNow._id)
       await dispatch(
         studentAction.putStudentUpdateAnswer({
           quiz_id,
-          question_id: questionNow.id,
+          question_id: questionNow._id,
           new_answer: data,
         })
       ).unwrap();
@@ -138,7 +139,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
 
   // Aside Number Questions
   let className = "rounded-md";
-  const numberOfQuestions = quizActive?.questions.map((item: Questions) => {
+  const numberOfQuestions = quizActive?.questions.map((item: Questions, index: number) => {
     let color: "default" | "primary" | "success" | "warning" | undefined =
       "default";
     const variant: "flat" | "solid" | "bordered" | undefined = "solid";
@@ -166,7 +167,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
         onClickCapture={changeQuestion}
         data-question={item.rand_seq}
       >
-        {item.rand_seq}
+        {index + 1}
       </Button>
     );
   });
@@ -203,9 +204,10 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
       await dispatch(
         studentAction.patchStudentSaveUnsaveQuestion({
           quiz_id,
-          question_id: questionNow.id,
+          question_id: questionNow._id,
         })
       ).unwrap();
+      console.log("KAMBING", questionNow._id)
     } catch (err) {
       console.log("Gagal Menandai Pertanyaan");
     } finally {
@@ -222,7 +224,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
       await dispatch(
         studentAction.patchStudentSaveUnsaveQuestion({
           quiz_id,
-          question_id: questionNow.id,
+          question_id: questionNow._id,
         })
       ).unwrap();
     } catch (err) {
@@ -342,7 +344,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
               <p className="font-bold">Daftar Nomor</p>
             </CardHeader>
             <CardBody className="p-0">
-              <div className="list-nomor-soal">{numberOfQuestions}</div>
+              <div className="flex gap-2 flex-wrap">{numberOfQuestions}</div>
             </CardBody>
           </Card>
         </div>

@@ -19,7 +19,7 @@ import {
   HashIcon,
   FileDigit,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "@/lib/hooks";
 import QuizifyNavbar from "@/components/QuizifyNavbar";
@@ -30,7 +30,7 @@ import QuestionDetailCard from "@/components/student/QuestionDetailCard";
 export default function Page({
   params,
 }: {
-  params: { quiz_id: string; student_id: string };
+  params: Promise<{ quiz_id: string; }>;
 }) {
   const [addRequestStatus, setAddRequestStatus] = useState<"idle" | "pending">(
     "idle"
@@ -43,9 +43,8 @@ export default function Page({
   const studentError = useAppSelector(selectStudentError);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [quizId, setQuizId] = useState(params.quiz_id);
-
-
+  const { quiz_id } = use(params);
+  const [quizId, setQuizId] = useState(quiz_id);
 
 
   useEffect(() => {

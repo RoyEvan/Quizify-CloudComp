@@ -58,6 +58,7 @@ const fetchTeacherQuizCheck = createAppAsyncThunk(
       const response = await client.get<[]>(
         `/api/teacher/quiz/${quiz_id}/corrections/${student_id}`
       );
+      console.log(response.data, "FETCH TEACHER QUIZ CHECK DATA");
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error); // Use rejectWithValue to pass the error message
@@ -245,6 +246,7 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchTeacherQuizActive.rejected, (state, action) => {
         state.status = "failed";
+        console.log(action.payload);
         state.error = action.payload.status;
         state.msg = action.payload.message;
       })
@@ -384,14 +386,9 @@ export const teacherReducerAction = teacherSlice.actions;
 
 export default teacherSlice.reducer;
 
-export const selectTeacherQuizCreated = (state: RootState) =>
-  state.quizTeacher.quiz;
-export const selectTeacherQuizActive = (state: RootState) =>
-  state.quizTeacher.quizActive;
-export const selectTeacherQuizCheck = (state: RootState) =>
-  state.quizTeacher.quizCheck;
-
-export const selectTeacherStatus = (state: RootState) =>
-  state.quizTeacher.status;
+export const selectTeacherQuizCreated = (state: RootState) => state.quizTeacher.quiz;
+export const selectTeacherQuizActive = (state: RootState) => state.quizTeacher.quizActive;
+export const selectTeacherQuizCheck = (state: RootState) => state.quizTeacher.quizCheck;
 export const selectTeacherMessage = (state: RootState) => state.quizTeacher.msg;
+export const selectTeacherStatus = (state: RootState) => state.quizTeacher.status;
 export const selectTeacherError = (state: RootState) => state.quizTeacher.error;

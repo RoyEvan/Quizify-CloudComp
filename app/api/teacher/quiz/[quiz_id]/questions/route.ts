@@ -6,7 +6,7 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 // Upload a Question
-export async function POST(req: NextRequest, {params}: {params: {quiz_id: string}}) {     
+export async function POST(req: NextRequest, {params}: {params: Promise<{quiz_id: string}>}) {     
   try {
     const token = await getToken({ req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET });
     const teacher_id: string|undefined = token?.user_id?.toString();
@@ -14,7 +14,8 @@ export async function POST(req: NextRequest, {params}: {params: {quiz_id: string
     const formData = await req.formData();
     
     // These are the expecteed value
-    const quiz_id: string = params.quiz_id;
+    const param = await params;
+    const quiz_id: string = param.quiz_id;
     const title = formData.get("title");
     const type = formData.get("type");
     const answer_key = formData.get("answer_key");
@@ -191,14 +192,15 @@ export async function POST(req: NextRequest, {params}: {params: {quiz_id: string
 }
 
 // Delete a Question
-export async function DELETE(req: NextRequest, {params}: {params: {quiz_id: string}}) {
+export async function DELETE(req: NextRequest, {params}: {params: Promise<{quiz_id: string}>}) {
   try {
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
     const request = await req.json();
 
+    const param = await params;
     const teacher_id: string|undefined = token?.user_id?.toString();
     const question_id: string = request.question_id.toString();
-    const quiz_id: string = params.quiz_id.toString();
+    const quiz_id: string = param.quiz_id;
 
     if(!quiz_id.trim() || !question_id.trim()) {
       return NextResponse.json("Quiz ID and Question ID must be a valid value!", { status: 400 });

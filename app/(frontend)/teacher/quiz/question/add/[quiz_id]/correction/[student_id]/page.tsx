@@ -17,7 +17,7 @@ import {
   FileDigit,
   User,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import {
@@ -33,7 +33,7 @@ import QuizifyNavbar from "@/components/QuizifyNavbar";
 import { toast, ToastContainer } from "react-toastify";
 import QuestionCheckCard from "@/components/teacher/QuestionCheckCard";
 
-export default function Page({ params }: { params: { quiz_id: string; student_id: string }; }) {
+export default function Page({ params }: { params: Promise<{ quiz_id: string; student_id: string }> }) {
   const [addRequestStatus, setAddRequestStatus] = useState<"idle" | "pending">("idle");
   const dispatch = useDispatch();
 
@@ -42,8 +42,7 @@ export default function Page({ params }: { params: { quiz_id: string; student_id
   const teacherMessage = useAppSelector(selectTeacherMessage);
   const teacherError = useAppSelector(selectTeacherError);
 
-  const quizId = params.quiz_id;
-  const studentId = params.student_id;
+  const {quiz_id: quizId, student_id: studentId} = use(params);
 
   const {
     formState: { errors },

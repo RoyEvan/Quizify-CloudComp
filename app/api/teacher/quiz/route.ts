@@ -19,12 +19,26 @@ const accessCodeExist = async (access_code: string) => {
   //   .find({ access_code, deleted_at: { $exists: true, $eq: null } })
   //   .toArray();
   
-  const quizSnap = await quizCol
-    .where("access_code", "==", access_code)
-    .where("deleted_at", "==", null)
-    .get();
+  const quizSnap = await quizCol.where("access_code", "==", access_code).get();
   
-  const accessCode: string = !quizSnap.empty ? quizSnap.docs[0].data().access_code : null;
+  if(quizSnap.empty) {
+    return false;
+  }
+
+  const quizData: any = quizSnap.docs[0].exists ? {
+    _id: quizSnap.docs[0].id,
+    ...quizSnap.docs[0].data(),
+    opened_at: quizSnap.docs[0].data().opened_at.toDate(),
+    ended_at: quizSnap.docs[0].data().ended_at.toDate(),
+    created_at: quizSnap.docs[0].data().created_at.toDate(),
+    deleted_at: quizSnap.docs[0].data().deleted_at?.toDate() || null,
+  } : null;
+
+  if(quizData.deleted_at) {
+    return false;
+  }
+
+  const accessCode: string = quizData.access_code;
 
   return accessCode.length > 0;
 }
@@ -33,7 +47,7 @@ const accessCodeExist = async (access_code: string) => {
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
-    const teacher_id: string | undefined = token?.user_id?.toString();
+    const teacher_id: string = token?.user_id?.toString()!;
     
     // const res = await database
     //   .collection("quizzes")
@@ -41,21 +55,23 @@ export async function GET(req: NextRequest) {
     //   .sort("created_at", -1)
     //   .toArray();
     
-    const quizSnaps = await quizCol
-      .where("teacher_id", "==", teacher_id!)
-      .where("deleted_at", "==", null)
-      .orderBy("created_at", "desc")
-      .get();
-    
-    const quizData = quizSnaps.docs.map((doc) => ({
+    const quizSnaps = await quizCol.where("teacher_id", "==", teacher_id).get();
+    if(quizSnaps.empty) {
+      return NextResponse.json([], { status: 200 });
+    }
+    const quizData: any = quizSnaps.docs.map((doc) => (!doc.data().deleted_at?.toDate() ? {
       _id: doc.id,
       ...doc.data(),
       created_at: doc.data().created_at.toDate(),
       opened_at: doc.data().opened_at.toDate(),
       ended_at: doc.data().ended_at.toDate(),
       deleted_at: doc.data().deleted_at?.toDate() || null,
-    }));
-    
+    } : null))
+    .filter((quiz) => quiz !== null);
+    if(quizData.deleted_at) {
+      return NextResponse.json("Quiz has been deleted", { status: 200 });
+    }
+  
     const returnData = await Promise.all(
       quizData.map(async (quiz: any) => {
         return {
@@ -70,7 +86,6 @@ export async function GET(req: NextRequest) {
         }
       })
     );
-    
     return NextResponse.json(returnData, { status: 200 });
   }
   catch(err) {
@@ -184,13 +199,15 @@ export async function DELETE(req: NextRequest) {
     
     const quizSnap = await quizCol
       .where('quiz_id', '==', quiz_id)
-      .where('deleted_at', '==', null)
       .where('teacher_id', '==', teacher_id)
       .get();
     if(quizSnap.empty) {
       return NextResponse.json("Quiz Not Found", { status: 404 });
     }
     const quizData: any = quizSnap.docs[0].exists ? { _id: quizSnap.docs[0].id, ...quizSnap.docs[0].data() } : null;
+    if(quizData.deleted_at) {
+      return NextResponse.json("Quiz has been deleted!", { status: 404 });
+    }
 
     if(quizData.student_attempt.length > 0) {
       return NextResponse.json("Quiz has been attempted by students!", { status: 400 });

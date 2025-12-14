@@ -6,14 +6,16 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest, {params}: {params: { quiz_id: string, student_id: string }}) {
+export async function GET(req: NextRequest, {params}: {params: Promise<{ quiz_id: string, student_id: string }>}) {
   try {
     const token = await getToken({ req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET });
     const teacher_id: string|undefined = token?.user_id?.toString();
     
-    const quiz_id: string = params.quiz_id.trim();
-    const student_id: string = params.student_id.trim();
-    if(quiz_id.length != 24 || student_id.length != 24) {
+    const param = await params;
+    const quizId: string = param.quiz_id;
+    const studentId: string = param.student_id;
+
+    if(!quizId || !studentId) {
       return NextResponse.json(
         "Quiz ID and Student ID must be a valid value!",
         { status: 400 }
@@ -35,22 +37,19 @@ export async function GET(req: NextRequest, {params}: {params: { quiz_id: string
     //     }
     //   });
     
-    const quizSnap = await quizCol
-      .where('quiz_id', '==',quiz_id)
-      .where('deleted_at', '==', null)
-      .get();
-    if(quizSnap.empty) {
+    const quizSnap = await quizCol.doc(quizId).get();
+    if(!quizSnap.exists) {
       return NextResponse.json("Quiz Not Found", { status: 404 });
     }
 
-    const quizData: any = !quizSnap.empty ? {
-      _id: quizSnap.docs[0].id,
-      ...quizSnap.docs[0].data(),
-      created_at: quizSnap.docs[0].data().created_at.toDate(),
-      opened_at: quizSnap.docs[0].data().opened_at.toDate(),
-      ended_at: quizSnap.docs[0].data().ended_at.toDate(),
-      deleted_at: quizSnap.docs[0].data().deleted_at?.toDate() || null,
-    } : null;
+    const quizData: any ={
+      _id: quizSnap.id,
+      ...quizSnap.data(),
+      created_at: quizSnap.data()!.created_at.toDate(),
+      opened_at: quizSnap.data()!.opened_at.toDate(),
+      ended_at: quizSnap.data()!.ended_at.toDate(),
+      deleted_at: quizSnap.data()!.deleted_at?.toDate() || null,
+    };
     
     const quizQuestionSnaps = await quizCol.doc(quizData._id).collection('questions').get();
     quizData.questions = quizQuestionSnaps.docs.map((doc) => {
@@ -78,23 +77,18 @@ export async function GET(req: NextRequest, {params}: {params: { quiz_id: string
       //     $set: { submit_date: new Date() }
       //   });
       
-      const studentSnaps = await studentCol
-        .where('cur_quiz_id', '==', quiz_id)
-        .get();
+      const studentSnaps = await studentCol.where('cur_quiz_id', '==', quizId).get();
       const studentData = studentSnaps.docs.map((doc) => {
         return { id: doc.id, ...doc.data() };
       });
       await Promise.all(studentData.map(async (student) => {
         await studentCol.doc(student.id).update({
           cur_quiz_id: "",
-          quiz_done: FieldValue.arrayUnion(quiz_id)
+          quiz_done: FieldValue.arrayUnion(quizId)
         });
       }));
 
-      const studentQuestionSnaps = await studentQuestionCol
-        .where('quiz_id', '==', quiz_id)
-        .where('submit_date', '==', null)
-        .get()
+      const studentQuestionSnaps = await studentQuestionCol.where('quiz_id', '==', quizId).get()
       const studentQuestionData = studentQuestionSnaps.docs.map((doc) => {
         return { id: doc.id, ...doc.data() };
       });
@@ -113,14 +107,21 @@ export async function GET(req: NextRequest, {params}: {params: { quiz_id: string
     //     submit_date: { $ne: null }
     //   });
     const studentQuestionSnaps = await studentQuestionCol
-      .where('quiz_id', '==', quiz_id)
-      .where('student_id', '==', student_id)
-      .where('submit_date', '!=', null)
+      .where('quiz_id', '==', quizId)
+      .where('student_id', '==', studentId)
       .get();
-    const studentQuestionData: any = !studentQuestionSnaps.empty ? {
+
+    if(studentQuestionSnaps.empty) {
+      return NextResponse.json("Student has not attempted this quiz!", { status: 404 })
+    }
+    const studentQuestionData: any = {
       _id: studentQuestionSnaps.docs[0].id,
       ...studentQuestionSnaps.docs[0].data()
-    } : null;
+    };
+    
+    if(!studentQuestionData.submit_date) {
+      return NextResponse.json("Student has not submitted this quiz!", { status: 404 })
+    }
 
     const questionSnaps = await studentQuestionCol.doc(studentQuestionData?._id).collection('questions').get();
     const questionData: any = questionSnaps.docs.map((doc) => {
@@ -154,10 +155,11 @@ export async function GET(req: NextRequest, {params}: {params: { quiz_id: string
     
 
     quizData.questions = await Promise.all(quizData.questions.map(async (question: any) => {
-      const answer = studentQuestionData.questions.find((ans: any) => ans.question_id.toString() == question.id.toString());
+      const answer = studentQuestionData.questions.find((ans: any) => ans.question_id == question.id);
       question.answer = answer.answer;
       question.correct_answer = answer.correct_answer;
       question.corrected = answer.corrected;
+      question.points = answer.points;
 
       question.img = question.img ? await fileNameToGcpLink(question.img) : undefined;
       if(question.type == "pg") {
@@ -176,7 +178,7 @@ export async function GET(req: NextRequest, {params}: {params: { quiz_id: string
       return question;
     }));
 
-    const studentSnap = await studentCol.doc(student_id).get();
+    const studentSnap = await studentCol.doc(studentId).get();
     const studentData: any = { _id: studentSnap.id, ...studentSnap.data() };
 
     return NextResponse.json({
@@ -199,41 +201,39 @@ export async function GET(req: NextRequest, {params}: {params: { quiz_id: string
   return NextResponse.json("Failed", { status: 500 })
 }
 
-export async function PUT(req: NextRequest, {params}: {params: { quiz_id: string, student_id: string }}) {
+export async function PUT(req: NextRequest, {params}: {params:  Promise<{ quiz_id: string, student_id: string }>}) {
   try {
     const request = await req.json();
     const token = await getToken({ req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET });
     const teacher_id: string|undefined = token?.user_id?.toString();
 
-    const quiz_id: string = params.quiz_id.trim();
-    const student_id: string = params.student_id.trim();
+    const param = await params;
+    const quizId: string = param.quiz_id;
+    const studentId: string = param.student_id;
     const questions = request.questions;
-    const result = request.result;
 
     // const quiz = await database
     //   .collection("quizzes")
     //   .findOne({ _id: new ObjectId(quiz_id), deleted_at: { $exists: true, $eq: null } });
     
-    const quizSnap = await quizCol
-      .where('quiz_id', '==',quiz_id)
-      .where('deleted_at', '==', null)
-      .get();
-    if(quizSnap.empty) {
+    const quizSnap = await quizCol.doc(quizId).get();
+    if(!quizSnap.exists) {
       return NextResponse.json("Quiz Not Found", { status: 404 });
     }
 
-    const quizData: any = !quizSnap.empty ? {
-      _id: quizSnap.docs[0].id,
-      ...quizSnap.docs[0].data(),
-      created_at: quizSnap.docs[0].data().created_at.toDate(),
-      opened_at: quizSnap.docs[0].data().opened_at.toDate(),
-      ended_at: quizSnap.docs[0].data().ended_at.toDate(),
-      deleted_at: quizSnap.docs[0].data().deleted_at?.toDate() || null,
-    } : null;
+    const quizData: any = {
+      _id: quizSnap.id,
+      ...quizSnap.data(),
+      created_at: quizSnap.data()!.created_at.toDate(),
+      opened_at: quizSnap.data()!.opened_at.toDate(),
+      ended_at: quizSnap.data()!.ended_at.toDate(),
+      deleted_at: quizSnap.data()!.deleted_at?.toDate() || null,
+    };
     if(!quizData) {
       return NextResponse.json("Quiz Not Found", { status: 404 });
     }
-    else if(quizData.teacher_id != teacher_id) {
+    
+    if(quizData.teacher_id != teacher_id) {
       return NextResponse.json("Unauthorized", { status: 401 });
     }
 
@@ -242,8 +242,8 @@ export async function PUT(req: NextRequest, {params}: {params: { quiz_id: string
     //   .findOne({ quiz_id: new ObjectId(quiz_id), student_id: new ObjectId(student_id) });
 
     const studentQuestionSnap = await studentQuestionCol
-      .where('quiz_id', '==', quiz_id)
-      .where('student_id', '==', student_id)
+      .where('quiz_id', '==', quizId)
+      .where('student_id', '==', studentId)
       .get();
     const studentQuestionData: any = !studentQuestionSnap.empty ? {
       _id: studentQuestionSnap.docs[0].id,
@@ -258,11 +258,15 @@ export async function PUT(req: NextRequest, {params}: {params: { quiz_id: string
       return { id: doc.id, ...doc.data() };
     });
     
-    questions.map((corrected: any) => {
-      const sq_answer = questionData.find((ans: any) => ans.question_id == corrected.id);
-      
-      sq_answer.correct_answer = corrected.correct_answer;
-      sq_answer.corrected = corrected.corrected;
+    const corrections = questions.map((corrected: any) => {
+      // Jawaban Siswa
+      const sq_answer = questionData.find((ans: any) => ans.question_id == corrected.id);   
+
+      sq_answer.correct_answer = (corrected.answer_key == corrected.answer);
+      sq_answer.corrected = true;
+      sq_answer.points = corrected.correct_answer;
+
+      return sq_answer;
     });
     
 
@@ -290,18 +294,24 @@ export async function PUT(req: NextRequest, {params}: {params: { quiz_id: string
     //   return NextResponse.json({ msg: "Success!" }, { status: 200 });
     // }
 
-    await Promise.all(questions.map(async (corrected: any) => {
+    
+    await Promise.all(corrections.map(async (corrected: any) => {
       await studentQuestionSnap.docs[0].ref
         .collection('questions')
         .doc(corrected.id)
         .update({
           correct_answer: corrected.correct_answer,
-          corrected: corrected.corrected
+          corrected: true,
+          points: corrected.points,
         });
     }));
 
+    const score = corrections.reduce((acc: number, curr: any) => {
+      return acc + curr.points;
+    }, 0);
+    
     await studentQuestionSnap.docs[0].ref.update({
-      score: result.score,
+      score: score,
       corrected: true
     });
 

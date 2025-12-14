@@ -25,7 +25,8 @@ function randomiseQuestions(questions: any) {
       answered: 0,
       answer: "",
       corrected: 0,
-      correct_answer: false
+      correct_answer: false, 
+      points: 0
     };
   });
 

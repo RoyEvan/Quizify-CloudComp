@@ -7,16 +7,17 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 // Get Detail Quiz
-export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}}) {
+export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id: string}>}) {
   try {
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
     const teacher_id: string|undefined = token?.user_id?.toString();
     
     // expected value from params
-    const quiz_id: string = params.quiz_id!;
+    const param = await params;
+    const quizId: string = param.quiz_id!;
 
     // Mengecek apakah student_id dan quiz_id sudah diinputkan
-    if(!quiz_id.trim()) {
+    if(!quizId.trim()) {
       return NextResponse.json("Quiz ID and Teacher ID must be a valid value!", { status: 400 });
     }
     
@@ -31,22 +32,22 @@ export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}
     //     }
     //   });
     
-    const quizSnap = await quizCol
-      .where('quiz_id', '==',quiz_id)
-      .where('deleted_at', '==', null)
-      .get();
-    if(quizSnap.empty) {
+    const quizSnap = await quizCol.doc(quizId).get();
+    if(!quizSnap.exists) {
       return NextResponse.json("Quiz Not Found", { status: 404 });
     }
 
-    const quizData: any = !quizSnap.empty ? {
-      _id: quizSnap.docs[0].id,
-      ...quizSnap.docs[0].data(),
-      created_at: quizSnap.docs[0].data().created_at.toDate(),
-      opened_at: quizSnap.docs[0].data().opened_at.toDate(),
-      ended_at: quizSnap.docs[0].data().ended_at.toDate(),
-      deleted_at: quizSnap.docs[0].data().deleted_at?.toDate() || null,
-    } : null;
+    const quizData: any = {
+      _id: quizSnap.id,
+      ...quizSnap.data(),
+      created_at: quizSnap.data()!.created_at.toDate(),
+      opened_at: quizSnap.data()!.opened_at.toDate(),
+      ended_at: quizSnap.data()!.ended_at.toDate(),
+      deleted_at: quizSnap.data()!.deleted_at?.toDate() || null,
+    };
+    if(quizData.deleted_at) {
+      return NextResponse.json("Quiz Not Found", { status: 404 });
+    }
     
     const quizQuestionSnaps = await quizCol.doc(quizData._id).collection('questions').get();
     quizData.questions = quizQuestionSnaps.docs.map((doc) => {
@@ -121,24 +122,21 @@ export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}
       // ])
       // .toArray();
       
-      const studentQuestionSnaps = await studentQuestionCol
-        .where("quiz_id", "==", quiz_id)
-        .where("submit_date", "!=", null)
-        .get();
-      const studentQuestionData: any[] = studentQuestionSnaps.docs.map((doc) => ({ _id: doc.id, ...doc.data() }));
-      const studentRefs = studentQuestionData.map(({student_id}) => studentCol.doc(student_id));
-      const studentSnaps = await studentCol.firestore.getAll(...studentRefs);
+      const studentQuestionSnaps = await studentQuestionCol.where("quiz_id", "==", quizId).get();
+      const studentQuestionData: any = !studentQuestionSnaps.empty ? studentQuestionSnaps.docs
+        .map((doc) => (doc.data().submit_date ? {_id: doc.id, ...doc.data()} : null))
+        .filter((sq: any) => sq != null) : [];
+      const studentRefs = !studentQuestionSnaps.empty ? studentQuestionData.map((sq: any) => studentCol.doc(sq.student_id)) : [];
+      const studentSnaps = !studentQuestionSnaps.empty ? await studentCol.firestore.getAll(...studentRefs) : [];
       const studentsData: any[] = studentSnaps.map(doc => ({ _id: doc.id, ...doc.data() }));
         
       const students_submitted = (studentsData.length < 0) ? [] :
         studentsData
-        .map((s) => {
-          s.quiz_done = s.quiz_done.length > 0 ? s.quiz_done[0].score : 0;
-          
+        .map((s) => {          
           return {
             _id: s._id,
             fullname: s.fullname,
-            score: s.quiz_done,
+            score: studentQuestionData.find((sq: any) => sq.student_id === s._id)?.score || 0,
           }
         });
 
@@ -158,24 +156,7 @@ export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}
   }
   catch(err) {
     console.log(err);
-    
-    return NextResponse.json("Failed", { status: 500 });
   }
-}
 
-// Correct Student Answer
-export async function POST(req: NextRequest, {params}: {params: {quiz_id: string}}) {
-  const request = await req.json();
-  try {
-    const quiz_id: string = params.quiz_id!;
-    const student_id: string = request.student_id!;
-
-    return NextResponse.json({quiz_id, student_id}, { status: 200 });
-    
-  }
-  catch(err){
-    console.log(err);
-    
-    return NextResponse.json("Failed", { status: 500 });
-  }
+  return NextResponse.json("Failed", { status: 500 });
 }

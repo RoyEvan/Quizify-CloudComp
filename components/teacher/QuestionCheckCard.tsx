@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 
 const QuestionCheckCard = ({ index, item, quizDetail, updateNilai }) => {
   const [nilai, setNilai] = useState(
-    item.correct_answer / (100 / quizDetail.questions.length / 10)
+    item.points / (100 / quizDetail.questions.length / 10)
   );
   const inputNilai = useRef(null);
 

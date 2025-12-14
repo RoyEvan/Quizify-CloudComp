@@ -2,15 +2,18 @@ import { fileNameToGcpLink } from "@/lib/helper/formatting/image";
 import { quizCol } from "@/types/collections/quizCol";
 import { studentCol } from "@/types/collections/studentCol";
 import { studentQuestionCol } from "@/types/collections/studentQuestionCol";
+import { FieldPath } from "firebase-admin/firestore";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET History per Quiz
-export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}}) {
+export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id: string}>}) {
   try {
     const token = await getToken({ req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET });
     const student_id: string | undefined = token?.user_id?.toString();
-    const quiz_id: string = params.quiz_id;
+
+    const param = await params;
+    const quiz_id: string = param.quiz_id;
 
     if (!student_id || !quiz_id) {
       return NextResponse.json("Question ID atau Student ID tidak ditemukan!", { status: 400 });
@@ -33,8 +36,7 @@ export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}
     //   });
 
     const quizSnap = await quizCol
-      .where('deleted_at', '==', null)
-      .where('_id', '==', quiz_id)
+      .where(FieldPath.documentId(), '==', quiz_id)
       .where('student_attempt', 'array-contains', student_id)
       .get();
     if(quizSnap.empty) {
@@ -48,6 +50,9 @@ export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}
       ended_at: quizSnap.docs[0].data().ended_at.toDate(),
       deleted_at: quizSnap.docs[0].data().deleted_at?.toDate() || null,
     };
+    if(quizData.deleted_at) {
+      return NextResponse.json("Quiz has been deleted!", { status: 404 });
+    }
 
     // const answers = await database
     // .collection("student_questions")
@@ -59,7 +64,6 @@ export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}
     const studentQuestionSnap = await studentQuestionCol
       .where("quiz_id", "==", quiz_id)
       .where("student_id", "==", student_id)
-      .where("submit_date", "!=", null)
       .get();
     if(!studentQuestionSnap.docs[0].exists) {
       return NextResponse.json("Student has not submitted this quiz!", { status: 404 })
@@ -68,6 +72,10 @@ export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}
     const studentQuestionData: any = {_id: studentQuestionSnap.docs[0].id, ...studentQuestionSnap.docs[0].data()};
     if(!studentQuestionData.corrected) {
       return NextResponse.json("Student answers has not been corrected for this quiz!", { status: 404 });
+    }
+
+    if(!studentQuestionData.submit_date) {
+      return NextResponse.json("Student has not submitted this quiz!", { status: 404 })
     }
 
     // MongoDB Code

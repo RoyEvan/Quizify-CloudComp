@@ -37,7 +37,7 @@ import {
   HashIcon,
   Trash2
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { cn } from "@heroui/theme";
 import { useDispatch } from "react-redux";
@@ -97,10 +97,8 @@ const FileUpload = (props: { onFileSelect: any; className?: string }) => {
   );
 };
 
-export default function Page({ params }: { params: { quiz_id: string } }) {
-  const [addRequestStatus, setAddRequestStatus] = useState<"idle" | "pending">(
-    "idle"
-  );
+export default function Page({ params }: { params: Promise<{ quiz_id: string }> }) {
+  const [addRequestStatus, setAddRequestStatus] = useState<"idle" | "pending">("idle");
   const dispatch = useDispatch();
 
   const quizDetail = useAppSelector(selectTeacherQuizActive);
@@ -110,8 +108,7 @@ export default function Page({ params }: { params: { quiz_id: string } }) {
 
   const [withImg, setWithImg] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const quizId = params.quiz_id;
-
+  const { quiz_id: quizId } = use(params);
 
   const {
     register,

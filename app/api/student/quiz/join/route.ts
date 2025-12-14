@@ -33,12 +33,12 @@ export async function POST(req: NextRequest) {
     //     }
     //   );
     
-    const quizSnap = await quizCol
-      .where('access_code', '==', access_code)
-      .where('deleted_at', '==', null)
-      .get();
+    const quizSnap = await quizCol.where('access_code', '==', access_code).get();
     if(!quizSnap.docs[0]) {
       return NextResponse.json("Quiz not found!", { status: 404 });
+    }
+    else if(quizSnap.docs[0].data().deleted_at) {
+      return NextResponse.json("Quiz has been deleted!", { status: 404 });
     }
 
     const questionsSnap = await quizSnap.docs[0].ref.collection('questions').get();
@@ -65,6 +65,9 @@ export async function POST(req: NextRequest) {
     }
     else if (quizData.questions.length === 0) {
       return NextResponse.json("Quiz has no questions!", { status: 403 });
+    }
+    else if(quizData.deleted_at) {
+      return NextResponse.json("Quiz has been deleted!", { status: 404 });
     }
 
 

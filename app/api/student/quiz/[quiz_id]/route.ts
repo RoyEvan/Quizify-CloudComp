@@ -37,7 +37,7 @@ export async function GET(req: NextRequest, {params}: {params: {quiz_id: string}
       .where('_id', '==', quiz_id)
       .where('student_attempt', 'array-contains', student_id)
       .get();
-    if(!quizSnap.docs[0].exists) {
+    if(quizSnap.empty) {
       return NextResponse.json("Quiz Not Found or student hasn't joined the quiz!", { status: 404 });
     }
     const quizData: any = {

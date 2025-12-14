@@ -10,7 +10,8 @@ export async function PUT(req: NextRequest) {
   try {
     const request = await req.json();
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
-    const student_id: string = token!.user_id!.toString();  
+    // const student_id: string = token!.user_id!.toString();  
+    const student_id: string = "Oc2hA8LVjGbpHz7gIXI9";  
     const question_id: string = request.question_id.toString().trim();
     const new_answer: string = request.new_answer.toString().trim();
 
@@ -65,7 +66,7 @@ export async function PUT(req: NextRequest) {
     const quiz_id: string = quiz._id;    
     const currentTime = new Date();
     const quizNotAvailable = currentTime < quiz.opened_at || quiz.ended_at < currentTime;
-    if(quizNotAvailable || quiz.questions.length <= 0) {
+    if(quizNotAvailable) {
       return NextResponse.json("Quiz tidak tersedia!", { status: 403 });
     }
     

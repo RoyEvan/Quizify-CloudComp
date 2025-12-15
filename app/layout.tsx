@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (<>
     <html lang="en">
-      <body className={`${PJSans.className} antialiased justify-center`}>
+      <body className={`${PJSans.className} dark antialiased justify-center`}>
         <Providers>
           {children}
         </Providers>

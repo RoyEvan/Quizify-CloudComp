@@ -37,3 +37,9 @@ body {
   background-color: #006fee;
   transition: all 0.16s ease;
 }
+
+div:has(>.pilgan-item) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

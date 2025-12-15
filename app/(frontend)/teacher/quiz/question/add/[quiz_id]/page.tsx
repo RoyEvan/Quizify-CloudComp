@@ -195,13 +195,13 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
             classNames={{
               base: cn(
                 // Normal COndition
-                "opacity-100 m-0 px-0 bg-neutral-950 w-full items-start pe-2 max-w-full rounded-md border-1 border-neutral-700",
+                "pilgan-item opacity-100 m-0 px-0 bg-neutral-950 w-full items-start pe-2 max-w-full rounded-md border-1 border-neutral-700",
                 "data-[selected=true]:border-primary"
               ),
             }}
           >
             <div className="flex gap-2 items-start">
-              <div className="pilgan font-bold min-w-8 min-h-8 bg-neutral-700 rounded-sm flex aspect-square h-fit w-8  justify-center items-center">
+              <div className="ms-1 pilgan font-bold min-w-8 min-h-8 bg-neutral-700 rounded-sm flex aspect-square h-fit w-8 justify-center items-center">
                 {String.fromCharCode(choice)}
               </div>
 

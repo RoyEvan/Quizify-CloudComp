@@ -200,7 +200,7 @@ const teacherSlice = createSlice({
       if (!soalDinilai) return; 
 
       if (soalDinilai.corrected) {
-        state.quizCheck.result.score -= soalDinilai.correct_answer;
+        state.quizCheck.result.score   -= soalDinilai.correct_answer;
         state.quizCheck.result.score += nilai;
         soalDinilai.correct_answer = nilai;
       } else {

@@ -58,7 +58,7 @@ const QuestionDetailCard = ({ index, item, questionsLength }) => {
 
           <Chip radius="sm" color="success">
             {/* {((nilai?nilai:0)/10) * (100/quizDetail.questions.length)} / {100 / quizDetail.questions.length} */}
-            {item.correct_answer ? parseFloat(item.correct_answer).toFixed(2) : 0} / {parseFloat(100/questionsLength).toFixed(2)}           
+            {item.points ? parseFloat(item.points).toFixed(2) : 0} / {parseFloat(100/questionsLength).toFixed(2)}           
           </Chip>
         </div>
       </CardHeader>

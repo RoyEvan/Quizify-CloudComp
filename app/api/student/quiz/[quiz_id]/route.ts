@@ -78,6 +78,12 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
       return NextResponse.json("Student has not submitted this quiz!", { status: 404 })
     }
 
+    const studentAnswerSnaps = await studentQuestionSnap.docs[0].ref.collection('questions').get();
+    studentQuestionData.questions = studentAnswerSnaps.docs.map((doc) => ({
+      _id: doc.id,
+      ...doc.data(),
+    }));
+
     // MongoDB Code
     // const student = (await database
     //   .collection("students")
@@ -93,10 +99,11 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
     }));
 
     quizData.questions = await Promise.all(quizData.questions.map(async (question: any) => {
-      const answer = studentQuestionData.questions.find((ans: any) => ans.question_id == question.id);
+      const answer = studentQuestionData.questions.find((ans: any) => ans.question_id == question._id);
       question.answer = answer.answer;
       question.correct_answer = answer.correct_answer;
       question.corrected = answer.corrected;
+      question.points = answer.points;
 
       question.img = question.img ? await fileNameToGcpLink(question.img) : undefined;
       if(question.type == "pg") {

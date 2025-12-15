@@ -1,15 +1,10 @@
-import { client, database } from "@/lib/mongodb";
 import { studentCol } from "@/types/collections/studentCol";
 import { teacherCol } from "@/types/collections/teacherCol";
-import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
 async function signup(type: string, email: string, name: string) {
-  const session = client.startSession();
   let id: string = '';
   try {
-    session.startTransaction();
-
     if(type === "student") {
       // MongoDB Code
       // id = (await database
@@ -56,19 +51,12 @@ async function signup(type: string, email: string, name: string) {
     else {
       throw new Error("Invalid Type of User");
     }
-
-    session.commitTransaction();
   }
   catch(err) {
     console.log(err);
-    
-    session.abortTransaction();
-
     return null;
   }
   finally {
-    session.endSession();
-
     return id;
   }
 }

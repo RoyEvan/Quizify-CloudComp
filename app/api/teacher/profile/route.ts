@@ -1,4 +1,3 @@
-import { client, database } from "@/lib/mongodb";
 import { teacherCol } from "@/types/collections/teacherCol";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";

@@ -1,7 +1,5 @@
-import { client, database } from "@/lib/mongodb";
 import { quizCol } from "@/types/collections/quizCol";
 import { studentQuestionCol } from "@/types/collections/studentQuestionCol";
-import { ObjectId } from "mongodb";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 

@@ -249,7 +249,7 @@ export async function GET(req: NextRequest) {
       }
 
       if(q.img) {
-        q.img = (await fileNameToGcpLink(q.img)).toString();
+        q.img = await fileNameToGcpLink(q.img);
       }
 
       return q;

@@ -93,7 +93,7 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
     }));
 
     quizData.questions = await Promise.all(quizData.questions.map(async (question: any) => {
-      const answer = studentQuestionData.questions.find((ans: any) => ans.question_id.toString() == question.id.toString());
+      const answer = studentQuestionData.questions.find((ans: any) => ans.question_id == question.id);
       question.answer = answer.answer;
       question.correct_answer = answer.correct_answer;
       question.corrected = answer.corrected;

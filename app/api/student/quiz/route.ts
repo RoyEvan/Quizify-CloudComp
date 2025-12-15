@@ -235,7 +235,7 @@ export async function GET(req: NextRequest){
       const score = studentQuestionData.find(s => s._id === studentQuizzes.qj[i]._id)?.score;
       
       const joined = {
-        _id: studentQuizzes.qj[i]._id.toString(),
+        _id: studentQuizzes.qj[i]._id,
         title: studentQuizzes.qj[i].title,
         quiz_started: studentQuizzes.qj[i].opened_at,
         quiz_ended: studentQuizzes.qj[i].ended_at,
@@ -251,10 +251,10 @@ export async function GET(req: NextRequest){
     }
 
     const quiz_done = studentQuizzes.qd.map((q:any) => {
-      const score = studentQuestionData.find((s:any) => s.quiz_id.toString() === q._id.toString())?.score;
+      const score = studentQuestionData.find((s:any) => s.quiz_id === q._id)?.score;
       
       return {
-        _id: q._id.toString(),
+        _id: q._id,
         title: q.title,
         quiz_started: q.opened_at,
         quiz_ended: q.ended_at,

@@ -255,7 +255,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         msg: "Successfully attempted the quiz!",
         data: {
-          quiz_id: quizData._id.toString(),
+          quiz_id: quizData._id,
           title: quizData.title,
           quiz_started: quizData.opened_at,
           quiz_ended: quizData.ended_at,

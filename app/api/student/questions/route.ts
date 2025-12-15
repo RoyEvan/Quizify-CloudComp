@@ -11,8 +11,8 @@ export async function PUT(req: NextRequest) {
     const request = await req.json();
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
     const student_id: string = token!.user_id!.toString();
-    const question_id: string = request.question_id.toString().trim();
-    const new_answer: string = request.new_answer.toString().trim();
+    const question_id: string = request.question_id.trim();
+    const new_answer: string = request.new_answer.trim();
 
     if(!question_id) {  
       return NextResponse.json("Question ID tidak ditemukan!", { status: 400 })

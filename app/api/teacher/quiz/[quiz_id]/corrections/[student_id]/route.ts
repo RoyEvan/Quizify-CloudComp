@@ -258,43 +258,15 @@ export async function PUT(req: NextRequest, {params}: {params:  Promise<{ quiz_i
       return { id: doc.id, ...doc.data() };
     });
     
-    const corrections = questions.map((corrected: any) => {
+    const corrections = questions.map((corrected: any) => {      
       // Jawaban Siswa
       const sq_answer = questionData.find((ans: any) => ans.question_id == corrected.id);   
-
       sq_answer.correct_answer = (corrected.answer_key == corrected.answer);
       sq_answer.corrected = true;
-      sq_answer.points = corrected.correct_answer;
-
+      sq_answer.points = corrected.points;
       return sq_answer;
     });
-    
 
-    // const session = client.startSession();
-    // let successCorrecting = false;
-    // try {
-    //   session.startTransaction();
-    //   await database
-    //   .collection("student_questions")
-    //   .updateMany({ quiz_id: new ObjectId(quiz_id), student_id: new ObjectId(student_id),  }, {
-    //     $set: { questions: sq.questions, score: result.score, corrected: true }
-    //   }, { session });
-    //   await session.commitTransaction();
-    //   successCorrecting = true;
-    // }
-    // catch(err) {
-    //   console.log(err);
-    //   await session.abortTransaction();
-    // }
-    // finally {
-    //   session.endSession();
-    // }
-    // 
-    // if(successCorrecting) {
-    //   return NextResponse.json({ msg: "Success!" }, { status: 200 });
-    // }
-
-    
     await Promise.all(corrections.map(async (corrected: any) => {
       await studentQuestionSnap.docs[0].ref
         .collection('questions')

@@ -2,9 +2,6 @@ import { signIn } from "next-auth/react";
 import QuizifyNavbar from "./QuizifyNavbar";
 
 const Login = (props: { goToQuiz: any; }) => {
-  // console.log("init login");
-
-
   const handleStudent = async () => {
     try {
       const result = await signIn("google-student");

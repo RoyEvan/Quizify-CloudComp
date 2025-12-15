@@ -59,7 +59,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string; st
   });
 
   const updateNilai = async (question_id, nilai) => {
-    try {
+    try {      
       dispatch(
         teacherReducerAction.updateNilai({
           question_id,

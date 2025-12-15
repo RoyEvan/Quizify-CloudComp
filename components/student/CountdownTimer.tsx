@@ -24,7 +24,6 @@ const CountdownTimer = ({ timeLeft }) => {
       if (time <= 0) {
         router.push("/student");
       }
-      console.log("sapi", time)
     }, 1000);
 
     return () => clearInterval(timer);

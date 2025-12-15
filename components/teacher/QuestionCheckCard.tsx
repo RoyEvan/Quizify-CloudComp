@@ -13,15 +13,13 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 const QuestionCheckCard = ({ index, item, quizDetail, updateNilai }) => {
-  const [nilai, setNilai] = useState(
-    item.points / (100 / quizDetail.questions.length / 10)
-  );
+  const [nilai, setNilai] = useState((item.points / (100 / quizDetail.questions.length)) * 10);
   const inputNilai = useRef(null);
 
   const handleNilaiChange = () => {
     const value = parseInt(inputNilai.current?.value || null); // Get value directly from ref
 
-    if (value < 0 || isNaN(value) || value == null) {
+    if (value < 0 || isNaN(value) || value == null) {      
       setNilai(null);
       inputNilai.current.value = null;
       updateNilai(item.id, (0 / 10) * (100 / quizDetail.questions.length)); // Update the val ue using the function
@@ -29,7 +27,8 @@ const QuestionCheckCard = ({ index, item, quizDetail, updateNilai }) => {
       setNilai(10);
       inputNilai.current.value = "10";
       updateNilai(item.id, (10 / 10) * (100 / quizDetail.questions.length)); // Update the val ue using the function
-    } else {
+    }
+    else {
       setNilai(value); // Get value from ref
       updateNilai(item.id, (value / 10) * (100 / quizDetail.questions.length)); // Update the val ue using the function
     }
@@ -94,6 +93,7 @@ const QuestionCheckCard = ({ index, item, quizDetail, updateNilai }) => {
             variant="underlined"
             labelPlacement="outside-left"
             max={100 / quizDetail.questions.length}
+            min={0}
             type="number"
             radius="sm"
             placeholder="0-10"

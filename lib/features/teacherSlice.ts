@@ -58,7 +58,6 @@ const fetchTeacherQuizCheck = createAppAsyncThunk(
       const response = await client.get<[]>(
         `/api/teacher/quiz/${quiz_id}/corrections/${student_id}`
       );
-      console.log(response.data, "FETCH TEACHER QUIZ CHECK DATA");
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error); // Use rejectWithValue to pass the error message
@@ -198,14 +197,15 @@ const teacherSlice = createSlice({
       );
 
       if (!soalDinilai) return; 
-
+      
       if (soalDinilai.corrected) {
-        state.quizCheck.result.score   -= soalDinilai.correct_answer;
+        state.quizCheck.result.score -= soalDinilai.points;
         state.quizCheck.result.score += nilai;
-        soalDinilai.correct_answer = nilai;
-      } else {
+        soalDinilai.points = nilai;
+      }
+      else {
         state.quizCheck.result.score += nilai;
-        soalDinilai.correct_answer = nilai;
+        soalDinilai.points = nilai;
         soalDinilai.corrected = true;
         state.quizCheck.result.corrected += 1;
       }
@@ -228,7 +228,6 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchTeacherAllQuiz.rejected, (state, action) => {
         state.status = "failed";
-        console.log("EOEOOEOEO", action);
         state.error = action.payload.status;
         state.msg = action.payload.message;
       })
@@ -246,7 +245,6 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchTeacherQuizActive.rejected, (state, action) => {
         state.status = "failed";
-        console.log(action.payload);
         state.error = action.payload.status;
         state.msg = action.payload.message;
       })
@@ -318,10 +316,7 @@ const teacherSlice = createSlice({
         state.status = "pending";
       })
       .addCase(postTeacherAddQuestion.fulfilled, (state, action) => {
-        console.log("AWIKOWK", action.payload);
-
         state.quizActive.questions.push(action.payload.data);
-
         state.status = "succeeded";
         state.msg = action.payload.msg;
       })

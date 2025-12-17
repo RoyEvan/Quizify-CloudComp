@@ -126,7 +126,7 @@ export default function Page() {
             </Chip>
           ) : (
             <Button
-              onClick={() => onAttempt(item._id)}
+              onClick={() => {onAttempt(item._id)}}
               className="rounded-md flex w-fit bg-primary-400"
             >
               Mulai

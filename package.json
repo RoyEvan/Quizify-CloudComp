@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^7.17.3",
+    "@google-cloud/tasks": "^6.2.1",
     "@heroui/react": "^2.8.5",
     "@hookform/resolvers": "^5.2.2",
     "@reduxjs/toolkit": "^2.10.1",

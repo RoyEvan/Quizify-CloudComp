@@ -21,17 +21,6 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
       return NextResponse.json("Quiz ID and Teacher ID must be a valid value!", { status: 400 });
     }
     
-    // Ambil quiz dari database
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne({
-    //     _id: new ObjectId(quiz_id), deleted_at: { $exists: true, $eq: null }
-    //   }, {
-    //     projection: {
-    //       created_at: 0,
-    //     }
-    //   });
-    
     const quizSnap = await quizCol.doc(quizId).get();
     if(!quizSnap.exists) {
       return NextResponse.json("Quiz Not Found", { status: 404 });
@@ -89,39 +78,7 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
     }));
     
     // Jika soal sudah ada, maka kembalikan soal dan waktu sisa ke client
-    if(quizData) {
-      // const students = await database
-      //   .collection("students")
-      //   .aggregate([{
-      //     $lookup: {
-      //       from: "student_questions",
-      //       localField: "_id",
-      //       foreignField: "student_id",
-      //       as: "quiz_done"
-      //     }
-      //   }, {
-      //     $match: {
-      //       _id: { $in: quiz.student_attempt },
-      //     }
-      //   }, {
-      //     $addFields: {
-      //       quiz_done: {
-      //         $filter: {
-      //           input: "$quiz_done",
-      //           as: "quiz",
-      //           cond: { $eq: ["$$quiz.quiz_id", new ObjectId(quiz_id)] }
-      //         }
-      //       }
-      //     }
-      //   }, {
-      //     $project: {
-      //       fullname: 1,
-      //       quiz_done: 1,
-      //     }
-      //   }
-      // ])
-      // .toArray();
-      
+    if(quizData) {      
       const studentQuestionSnaps = await studentQuestionCol.where("quiz_id", "==", quizId).get();
       const studentQuestionData: any = !studentQuestionSnaps.empty ? studentQuestionSnaps.docs
         .map((doc) => (doc.data().submit_date ? {_id: doc.id, ...doc.data()} : null))

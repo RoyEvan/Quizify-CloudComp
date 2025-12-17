@@ -11,12 +11,7 @@ const getUniqueAccessCode = () => {
   return uniqueId.padEnd(16, '0');
 };
 
-const accessCodeExist = async (access_code: string) => {
-  // const res = await database
-  //   .collection("quizzes")
-  //   .find({ access_code, deleted_at: { $exists: true, $eq: null } })
-  //   .toArray();
-  
+const accessCodeExist = async (access_code: string) => {  
   const quizSnap = await quizCol.where("access_code", "==", access_code).get();
   
   if(quizSnap.empty) {
@@ -46,12 +41,6 @@ export async function GET(req: NextRequest) {
   try {
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
     const teacher_id: string = token?.user_id?.toString()!;
-    
-    // const res = await database
-    //   .collection("quizzes")
-    //   .find({ teacher_id: new ObjectId(teacher_id), deleted_at: { $exists: true, $eq: null } })
-    //   .sort("created_at", -1)
-    //   .toArray();
     
     const quizSnaps = await quizCol.where("teacher_id", "==", teacher_id).get();
     if(quizSnaps.empty) {
@@ -121,21 +110,6 @@ export async function POST(req: NextRequest) {
       // Mengecek apakah access_code sudah digunakan
       return NextResponse.json("Access Code is used", { status: 400 });
     }
-    
-    // const insert = await database
-    //   .collection("quizzes")
-    //   .insertOne({
-    //     title,
-    //     created_at: new Date(),
-    //     opened_at,
-    //     ended_at,
-    //     access_code,
-    //     teacher_id: new ObjectId(teacher_id),
-    //     student_attempt: [],
-    //     student_joined: [],
-    //     questions: [],
-    //     deleted_at: null,
-    //   });
 
     const newQuiz = {
       title,
@@ -185,15 +159,6 @@ export async function DELETE(req: NextRequest) {
     if(!quiz_id) {
       return NextResponse.json("Invalid Quiz ID", { status: 400 });
     }
-
-    // Get the Quiz
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne({
-    //     _id: new ObjectId(quiz_id),
-    //     teacher_id: new ObjectId(teacher_id),
-    //     deleted_at: { $exists: true, $eq: null }
-    //   });
     
     const quizSnap = await quizCol
       .where('quiz_id', '==', quiz_id)

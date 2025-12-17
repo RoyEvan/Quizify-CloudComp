@@ -107,7 +107,6 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
   const updateAnswer = async (data: string | number | boolean) => {
     try {
       setAddRequestStatus("pending");
-      console.log("SASAASASA", questionNow._id)
       await dispatch(
         studentAction.putStudentUpdateAnswer({
           quiz_id,
@@ -207,7 +206,6 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
           question_id: questionNow._id,
         })
       ).unwrap();
-      console.log("KAMBING", questionNow._id)
     } catch (err) {
       console.log("Gagal Menandai Pertanyaan");
     } finally {

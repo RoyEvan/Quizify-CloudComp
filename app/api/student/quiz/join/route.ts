@@ -16,23 +16,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json("Access Code and Student ID must be a valid value!",{ status: 400 });
     }
     
-    // MongoDB Code
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne(
-    //     { access_code, deleted_at: { $exists: true, $eq: null } },
-    //     { 
-    //       projection: {
-    //         student_joined: 1,
-    //         student_attempt: 1,
-    //         title: 1,
-    //         questions: 1,
-    //         opened_at: 1,
-    //         ended_at: 1
-    //       }
-    //     }
-    //   );
-    
     const quizSnap = await quizCol.where('access_code', '==', access_code).get();
     if(!quizSnap.docs[0]) {
       return NextResponse.json("Quiz not found!", { status: 404 });
@@ -74,44 +57,6 @@ export async function POST(req: NextRequest) {
     const hasAttempted = quizData.student_attempt.find((sid: string) => sid == student_id);
     const hasJoined = quizData.student_joined.find((sid: string) => sid == student_id);
     if(!hasJoined && !hasAttempted) {
-      // MongoDB Code
-      // const session = client.startSession();
-      // try {
-      //   session.startTransaction();
-      //   const joinQuiz = await database
-      //     .collection<Document>("quizzes")
-      //     .findOneAndUpdate({ access_code, deleted_at: { $exists: true, $eq: null } }, {
-      //       $push: { student_joined: new ObjectId(student_id) }
-      //     },  {
-      //       projection: {
-      //         _id: 1,
-      //         opened_at: 1,
-      //         ended_at: 1
-      //       },
-      //       session
-      //     });
-      // 
-      //   if(!joinQuiz) {
-      //     return NextResponse.json("Quiz not found!", { status: 404 });
-      //   }        
-      // 
-      //   // const updateStudent = await database
-      //   await database
-      //     .collection<Document>("students")
-      //     .updateOne({ _id: new ObjectId(student_id) }, {
-      //       $push: { quiz_joined: joinQuiz._id }
-      //     }, { session });
-      //     await session.commitTransaction();
-      // }
-      // catch(err: any) {
-      //   await session.abortTransaction();
-        
-      //   return NextResponse.json(err.message, { status: 404 });
-      // }
-      // finally {
-      //   session.endSession();
-      // }
-
       quizSnap.docs[0].ref.update({ student_joined: FieldValue.arrayUnion(student_id) });
       studentCol.doc(student_id).update({ quiz_joined: FieldValue.arrayUnion(quizData._id) });
     }

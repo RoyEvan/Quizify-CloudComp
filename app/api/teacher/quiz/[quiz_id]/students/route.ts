@@ -6,26 +6,6 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
   try {
     const param = await params;
     const quiz_id = param.quiz_id;
-
-    // Ambil list of student_attempt dari database
-    // const students = await database
-    //   .collection("quizzes")
-    //   .aggregate()
-    //   .match({ _id: new ObjectId(quiz_id), deleted_at: { $exists: true, $eq: null } })
-    //   .lookup({
-    //     from: "students",
-    //     localField: "student_attempt",
-    //     foreignField: "_id",
-    //     as: "students"
-    //   })
-    //   .unwind("$students")
-    //   .lookup({
-    //     from: "student_questions",
-    //     localField: "students._id",
-    //     foreignField: "student_id",
-    //     as: "students.questions"
-    //   })
-    //   .toArray();
     
     const quizSnap = await quizCol.doc(quiz_id).get();
     const quizData: any = quizSnap.exists ? { _id: quizSnap.id, ...quizSnap.data() } : null;

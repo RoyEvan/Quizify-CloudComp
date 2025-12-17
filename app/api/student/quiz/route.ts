@@ -16,16 +16,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json("Akses tidak terotorisasi!", { status: 400 });
     }
 
-    // MongoDB Code
-    // // Ambil students dengan id yang diinputkan
-    // const student = await database
-    //   .collection("students")
-    //   .findOne({
-    //     _id: new ObjectId(student_id)
-    //   }, {
-    //     projection: { cur_quiz_id: 1 }
-    //   });
-
     const studentSnap = await studentCol.doc(student_id).get();
     const studentData: any = { _id: student_id, ...studentSnap.data() };
     
@@ -38,48 +28,6 @@ export async function POST(req: NextRequest) {
       // Jika student tidak memiliki quiz yang sedang dikerjakan
       return NextResponse.json("Siswa tidak memiliki quiz untuk dikumpulkan!", { status: 400 });
     }
-    
-    // MongoDB Code
-    // // Update student
-    // const session = client.startSession();
-    // let successSubmit = false;
-    // try {
-    //   session.startTransaction();
-    // 
-    //   await database
-    //     .collection<Document>("students")
-    //     .updateOne({ _id: new ObjectId(student_id) }, {
-    //       $set: {
-    //         cur_quiz_id: "",
-    //       },
-    //       $push: {
-    //         quiz_done: new ObjectId(student.cur_quiz_id+"")
-    //       },
-    //       $pull: {
-    //         quiz_joined: new ObjectId(student.cur_quiz_id+"")
-    //       }
-    //     }, { session });
-    // 
-    //   // Update student_questions
-    //   await database
-    //     .collection<Document>("student_questions")
-    //     .updateMany({ student_id: new ObjectId(student_id), quiz_id: new ObjectId(student.cur_quiz_id+"") }, {
-    //       $set: { submit_date: new Date() }
-    //     }, { session });
-    // 
-    //   await session.commitTransaction();
-    //   successSubmit = true;
-    // }
-    // catch(err) {
-    //   console.log(err);
-    //   await session.abortTransaction();
-    // }
-    // finally {
-    //   session.endSession();
-    // }
-    // if(!successSubmit) {
-    //   return NextResponse.json("Gagal mengumpulkan quiz!", { status: 500 });
-    // }
 
     await studentSnap.ref.update({
       cur_quiz_id: "",
@@ -95,19 +43,6 @@ export async function POST(req: NextRequest) {
     studentQuestionSnap.docs[0].ref.update({
       submit_date: FieldValue.serverTimestamp()
     });
-
-    // MongoDB Code
-    // const quiz = (await database
-    //   .collection("quizzes")
-    //   .findOne({
-    //     _id: new ObjectId(student.cur_quiz_id+"")
-    //   },{
-    //     projection: {
-    //       title: 1,
-    //       opened_at: 1,
-    //       ended_at: 1
-    //     }
-    //   }))!;
 
     const quizSnap = await quizCol.doc(studentData.cur_quiz_id).get();
     const quizData: any = {
@@ -141,36 +76,6 @@ export async function GET(req: NextRequest){
   try {
     const token = await getToken({req,secret:process.env.QUIZIFY_NEXTAUTH_SECRET});
     const student_id: string = token!.user_id!.toString();
-
-    // const [quiz] = await database
-    //   .collection("students")
-    //   .aggregate([
-    //     { $match: { _id: new ObjectId(student_id) } },
-    //     { $lookup: {
-    //       from: "quizzes",
-    //       localField: "quiz_joined",
-    //       foreignField: "_id",
-    //       as: "qj"
-    //     }},
-    //     { $lookup: {
-    //       from: "quizzes",
-    //       localField: "quiz_done",
-    //       foreignField: "_id",
-    //       as: "qd"
-    //     }},
-    //     { $lookup: {
-    //       from: "quizzes",
-    //       localField: "cur_quiz_id",
-    //       foreignField: "_id",
-    //       as: "cq"
-    //     }},
-    //     { $project: {
-    //       qj: 1,
-    //       qd: 1,
-    //       cur_quiz_id: 1
-    //     }},
-    //   ])
-    //   .toArray();
 
     const studentSnap = await studentCol.doc(student_id).get();
     const studentData: any = { _id: studentSnap.id, ...studentSnap.data() };
@@ -216,10 +121,6 @@ export async function GET(req: NextRequest){
       cq: currentQuizData
     };
 
-    // const sq = await database
-    //   .collection("student_questions")
-    //   .find({ student_id: new ObjectId(student_id) })
-    //   .toArray();
     const studentQuestionSnap = await studentQuestionCol
       .where('student_id', '==', student_id)
       .get();

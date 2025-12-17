@@ -19,22 +19,6 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
       return NextResponse.json("Question ID atau Student ID tidak ditemukan!", { status: 400 });
     }
 
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne({
-    //     _id: new ObjectId(quiz_id),
-    //     student_attempt: { $in: [new ObjectId(student_id)] },
-    //     deleted_at: { $exists: true, $eq: null }
-    //   }, {
-    //     projection: {
-    //       title: 1,
-    //       access_code: 1,
-    //       teacher_id: 1,
-    //       ended_at: 1,
-    //       questions: 1 
-    //     }
-    //   });
-
     const quizSnap = await quizCol
       .where(FieldPath.documentId(), '==', quiz_id)
       .where('student_attempt', 'array-contains', student_id)
@@ -54,13 +38,6 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
       return NextResponse.json("Quiz has been deleted!", { status: 404 });
     }
 
-    // const answers = await database
-    // .collection("student_questions")
-    // .findOne({
-    //   quiz_id: new ObjectId(quiz_id),
-    //   student_id: new ObjectId(student_id),
-    //   submit_date: { $ne: null }
-    // });
     const studentQuestionSnap = await studentQuestionCol
       .where("quiz_id", "==", quiz_id)
       .where("student_id", "==", student_id)
@@ -83,11 +60,6 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
       _id: doc.id,
       ...doc.data(),
     }));
-
-    // MongoDB Code
-    // const student = (await database
-    //   .collection("students")
-    //   .findOne({ _id: new ObjectId(student_id) }, { projection: { fullname: 1 } }))!;
 
     const studentSnap = await studentCol.doc(student_id).get();
     const studentData = { _id: studentSnap.id, fullname: studentSnap.data()!.fullname };

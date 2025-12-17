@@ -5,19 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 async function signup(type: string, email: string, name: string) {
   let id: string = '';
   try {
-    if(type === "student") {
-      // MongoDB Code
-      // id = (await database
-      //   .collection("students")
-      //   .insertOne({
-      //     cur_quiz_id: "",
-      //     email,
-      //     nickname: name.split(" ")[0],
-      //     fullname: name,
-      //     quiz_joined: [],
-      //     quiz_done: [],
-      //   }, { session })).insertedId;
-      
+    if(type === "student") {      
       const newStudentSnap = await studentCol.add({
         cur_quiz_id: "",
         email,
@@ -30,15 +18,6 @@ async function signup(type: string, email: string, name: string) {
       id = newStudentSnap.id;
     }
     else if(type === "teacher") {
-      // id = (await database
-      //   .collection("teachers")
-      //   .insertOne({
-      //     email,
-      //     nickname: name.split(" ")[0],
-      //     fullname: name,
-      //     quiz_created: [],
-      //   }, { session })).insertedId;
-
       const newTeacherSnap = await teacherCol.add({
         email,
         nickname: name.split(" ")[0],
@@ -74,15 +53,6 @@ export async function POST(req: NextRequest) {
     }
 
     if(type == "student") {
-      // MongoDB Code
-      // const student = await database
-      //   .collection("students")
-      //   .findOne({ email });
-      // 
-      // const emailUsed = await database
-      //   .collection("teachers")
-      //   .findOne({ email });
-
       const studentSnap = await studentCol.where('email', '==', email).get();
       const student = studentSnap.docs.length > 0 ? { id: studentSnap.docs[0].id, ...studentSnap.docs[0].data() } : null;
 
@@ -103,15 +73,6 @@ export async function POST(req: NextRequest) {
       }
     }
     else {
-      // MongoDB Code
-      // const teacher = await database
-      //   .collection("teachers")
-      //   .findOne({ email });
-      // 
-      // const emailUsed = await database
-      //   .collection("students")
-      //   .findOne({ email });
-
       const teacherSnap = await teacherCol.where('email', '==', email).get();
       const teacher = teacherSnap.docs.length > 0 ? { id: teacherSnap.docs[0].id, ...teacherSnap.docs[0].data() } : null;
 

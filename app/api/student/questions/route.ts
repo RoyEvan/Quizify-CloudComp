@@ -18,29 +18,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json("Question ID tidak ditemukan!", { status: 400 })
     }
 
-    // // MongoDB Code
-    // // Get current quiz of student with id = student_id
-    // let [quiz] = await database
-    //   .collection("students")
-    //   .aggregate([{
-    //     $match: { _id: new ObjectId(student_id) }
-    //   }, {
-    //     $lookup: {
-    //       from: "quizzes",
-    //       localField: "cur_quiz_id",
-    //       foreignField: "_id",
-    //       as: "quiz"
-    //     }
-    //   }, {
-    //     $project: {
-    //       _id: 0,
-    //       quiz: 1
-    //     }
-    //   }, {
-    //     $unwind: "$quiz"
-    //   },])
-    //   .toArray();
-
     // Firestore conversion
     let quiz: any = null;
     const studentSnap = await studentCol.doc(student_id).get();
@@ -76,25 +53,6 @@ export async function PUT(req: NextRequest) {
       .where('quiz_id', '==', quiz_id)
       .get();
     if(quiz.ended_at < currentTime) {
-      // await database
-      //   .collection<Document>("students")
-      //   .updateOne({ _id: new ObjectId(student_id) }, {
-      //     $set: { cur_quiz_id: "" },
-      //     $push: { quiz_done: new ObjectId(student.cur_quiz_id+"") },
-      //     $pull: { quiz_joined: new ObjectId(student.cur_quiz_id+"") }
-      //   }, { session });
-
-      // await database
-      //   .collection<Document>("student_questions")
-      //   .updateMany({
-      //     student_id: new ObjectId(student_id),
-      //     quiz_id: new ObjectId(student.cur_quiz_id+"")
-      //   },
-      //   {
-      //     $set: { submit_date: cur_quiz!.ended_at.toDate() }
-      //   }, { session }
-      // );
-
       await studentCol.doc(student_id).update({
         cur_quiz_id: "",
         quiz_done: FieldValue.arrayUnion(quiz_id),
@@ -107,37 +65,6 @@ export async function PUT(req: NextRequest) {
 
       return NextResponse.json("Waktu mengerjakan quiz telah berakhir, jawaban tidak dapat diubah!", { status: 403 });
     }
-
-    // MongoDB Code
-    // Transactions
-    // let successUpdatingAnswer = false;
-    // const session = client.startSession();
-    // try {
-    //   session.startTransaction();
-    //   const update_data = await database
-    //     .collection("student_questions")
-    //     .updateOne({
-    //       quiz_id: new ObjectId(quiz_id),
-    //       student_id: new ObjectId(student_id),
-    //       "questions.question_id": new ObjectId(question_id)
-    //     }, {
-    //       $set: {
-    //         "questions.$.answer": new_answer,
-    //         "questions.$.answered": (new_answer == "" || new_answer.length <= 0) ? 0 : 1
-    //       }
-    //     }, { session });
-
-    //   await session.commitTransaction();
-    //   if(update_data.matchedCount >= 1) {
-    //     successUpdatingAnswer = true;
-    //   }
-    // }
-    // catch(err) {
-    //   await session.abortTransaction();
-    // }
-    // finally {
-    //   session.endSession();
-    // }
 
     await studentQuestionSnap.docs[0].ref
       .collection('questions')
@@ -177,34 +104,6 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json("Question ID atau Student ID tidak ditemukan!", { status: 400 })
     }
 
-    // MongoDB Code
-    // const [current_question] = await database
-    //   .collection("students")
-    //   .aggregate([
-    //     {
-    //       $lookup: {
-    //         from: "student_questions",
-    //         let: { curQuizId: "$cur_quiz_id" },
-    //         pipeline: [
-    //           {
-    //             $match: {
-    //               $expr: {
-    //                 $and: [
-    //                   { $eq: ["$quiz_id", "$$curQuizId"] },
-    //                   { $eq: ["$student_id", new ObjectId(student_id)] }
-    //                 ]
-    //               }
-    //             }
-    //           },
-    //         ],
-    //         as: "quiz"
-    //       }
-    //     },
-    //     { $unwind: "$quiz" }, // Unwind the quiz array to make it a single object
-    //     { $replaceRoot: { newRoot: "$quiz" } }, // Replace the root with the quiz object
-    //   ])
-    //   .toArray();
-
     const studentSnap = await studentCol.doc(student_id).get();
     const studentData = studentSnap.data()!;
     const quiz_id: string = studentData.cur_quiz_id;
@@ -234,18 +133,6 @@ export async function PATCH(req: NextRequest) {
     };
     const status = current_question.answered;
     const answer = current_question.answer.toString().trim();
-    
-    // MongoDB Code
-    // const update_data = await database
-    //   .collection("student_questions")
-    //   .updateOne({
-    //     _id: current_question._id,
-    //     "questions.question_id": new ObjectId(question_id)
-    //   }, {
-    //     $set: {
-    //       "questions.$.answered": (status === 0 || status === 1) ? 2 : (answer.length > 0) ? 1 : 0
-    //     }
-    //   });
 
     const newAnsweredStatus = (status === 0 || status === 1) ? 2 : (answer.length > 0) ? 1 : 0;
     await questionSnap.ref.update({ answered: newAnsweredStatus });

@@ -12,14 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json("Request tidak valid!", { status: 400 });
     }
 
-    if(type == "student") {
-      // MongoDB Code
-      // const student = await database
-      //   .collection("students")
-      //   .findOne({ email });
-
-      // convert this code into using firebase firestore
-      
+    if(type == "student") {      
       const studentSnap = await studentCol.where('email', '==', email).get();
       const student = !studentSnap.empty ? { id: studentSnap.docs[0].id, ...studentSnap.docs[0].data() } : null;
       if(student) {
@@ -27,12 +20,6 @@ export async function POST(req: NextRequest) {
       }  
     }
     else {
-      // MongoDB Code
-      // const teacher = await database
-      //   .collection("teachers")
-      //   .findOne({ email });
-
-      // convert this code into using firebase firestore
       const teacherSnap = await teacherCol.where('email', '==', email).get();
       const teacherData = !teacherSnap.empty ? { id: teacherSnap.docs[0].id, ...teacherSnap.docs[0].data() } : null;
 

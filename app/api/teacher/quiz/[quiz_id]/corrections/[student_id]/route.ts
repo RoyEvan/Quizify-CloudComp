@@ -21,21 +21,6 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{ quiz_id
         { status: 400 }
       );
     }
-
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne({
-    //     _id: new ObjectId(quiz_id),
-    //     deleted_at: { $exists: true, $eq: null }
-    //   }, {
-    //     projection: {
-    //       title: 1,
-    //       access_code: 1,
-    //       teacher_id: 1,
-    //       ended_at: 1,
-    //       questions: 1
-    //     }
-    //   });
     
     const quizSnap = await quizCol.doc(quizId).get();
     if(!quizSnap.exists) {
@@ -64,19 +49,6 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{ quiz_id
     
     // Make all students submit their quiz
     if(quizData.ended_at < new Date()) {
-      // await database
-      //   .collection<Document>("students")
-      //   .updateMany({ cur_quiz_id: quiz_id }, {
-      //     $set: { cur_quiz_id: "" },
-      //     $push: { quiz_done: new ObjectId(quiz_id) }
-      //   });
-
-      // await database
-      //   .collection<Document>("student_questions")
-      //   .updateMany({ quiz_id, submit_date: null }, {
-      //     $set: { submit_date: new Date() }
-      //   });
-      
       const studentSnaps = await studentCol.where('cur_quiz_id', '==', quizId).get();
       const studentData = studentSnaps.docs.map((doc) => {
         return { id: doc.id, ...doc.data() };
@@ -99,13 +71,6 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{ quiz_id
       }));
     }
 
-    // const answers = await database
-    //   .collection("student_questions")
-    //   .findOne({
-    //     quiz_id: new ObjectId(quiz_id),
-    //     student_id: new ObjectId(student_id),
-    //     submit_date: { $ne: null }
-    //   });
     const studentQuestionSnaps = await studentQuestionCol
       .where('quiz_id', '==', quizId)
       .where('student_id', '==', studentId)
@@ -116,7 +81,8 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{ quiz_id
     }
     const studentQuestionData: any = {
       _id: studentQuestionSnaps.docs[0].id,
-      ...studentQuestionSnaps.docs[0].data()
+      ...studentQuestionSnaps.docs[0].data(),
+      submit_date: studentQuestionSnaps.docs[0].data().submit_date.toDate() || null
     };
     
     if(!studentQuestionData.submit_date) {
@@ -127,38 +93,12 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{ quiz_id
     const questionData: any = questionSnaps.docs.map((doc) => {
       return { id: doc.id, ...doc.data() };
     });
-    
-    // student = (await database
-    //   .collection("students")
-    //   .findOne({ _id: new ObjectId(student_id) }, { projection: { fullname: 1 } }))!;
-    
-    // Begin the auto-correction process
-    const pointsPerQuestion: number = 100 / quizData.questions.length;
-    let score = 0;
-    let corrected: number = 0;
-
-
-    studentQuestionData.questions = questionData.map((ans: any) => {
-      const question = quizData.questions.find((question: any) => question.id == ans.question_id);
-      
-      if(question.type == "pg" && !studentQuestionData.corrected) {
-        ans.correct_answer = parseInt(question.answer_key) === parseInt(ans.answer) ? pointsPerQuestion : 0;
-        ans.corrected = true;
-        score += ans.correct_answer;
-      }
-
-      if(ans.corrected) {
-        corrected++;
-      }
-      return ans;
-    });
-    
 
     quizData.questions = await Promise.all(quizData.questions.map(async (question: any) => {
-      const answer = studentQuestionData.questions.find((ans: any) => ans.question_id == question.id);
+      const answer = questionData.find((ans: any) => ans.question_id == question.id);
       question.answer = answer.answer;
       question.correct_answer = answer.correct_answer;
-      question.corrected = answer.corrected;
+      question.corrected = true;
       question.points = answer.points;
 
       question.img = question.img ? await fileNameToGcpLink(question.img) : undefined;
@@ -188,9 +128,9 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{ quiz_id
       student: studentData.fullname,
       questions: quizData.questions,
       result: {
-        corrected,
-        score: studentQuestionData.corrected ? studentQuestionData.score : score,
-        submitted: studentQuestionData.submit_date.toDate(),
+        corrected: questionData.length,
+        score: studentQuestionData.score,
+        submitted: studentQuestionData.submit_date,
       }
     }, { status: 200 })
   }
@@ -211,10 +151,6 @@ export async function PUT(req: NextRequest, {params}: {params:  Promise<{ quiz_i
     const quizId: string = param.quiz_id;
     const studentId: string = param.student_id;
     const questions = request.questions;
-
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne({ _id: new ObjectId(quiz_id), deleted_at: { $exists: true, $eq: null } });
     
     const quizSnap = await quizCol.doc(quizId).get();
     if(!quizSnap.exists) {
@@ -236,10 +172,6 @@ export async function PUT(req: NextRequest, {params}: {params:  Promise<{ quiz_i
     if(quizData.teacher_id != teacher_id) {
       return NextResponse.json("Unauthorized", { status: 401 });
     }
-
-    // const sq = await database
-    //   .collection("student_questions")
-    //   .findOne({ quiz_id: new ObjectId(quiz_id), student_id: new ObjectId(student_id) });
 
     const studentQuestionSnap = await studentQuestionCol
       .where('quiz_id', '==', quizId)
@@ -274,7 +206,7 @@ export async function PUT(req: NextRequest, {params}: {params:  Promise<{ quiz_i
         .update({
           correct_answer: corrected.correct_answer,
           corrected: true,
-          points: corrected.points,
+          points: corrected.points
         });
     }));
 

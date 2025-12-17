@@ -31,10 +31,6 @@ export async function POST(req: NextRequest, {params}: {params: Promise<{quiz_id
       return NextResponse.json("Quiz ID, Title dan Type tidak boleh kosong!", { status: 400 });
     }
 
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne({ _id: new ObjectId(quiz_id), deleted_at: { $exists: true, $eq: null } });
-
     const quizSnap = await quizCol.doc(quiz_id).get();
     const quizData: any = quizSnap.exists ? { _id: quizSnap.id, ...quizSnap.data() } : null;
     if(!quizData) {
@@ -205,15 +201,6 @@ export async function DELETE(req: NextRequest, {params}: {params: Promise<{quiz_
     if(!quiz_id.trim() || !question_id.trim()) {
       return NextResponse.json("Quiz ID and Question ID must be a valid value!", { status: 400 });
     }
-
-    // Get the quiz
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne({
-    //     _id: new ObjectId(quiz_id.trim()),
-    //     teacher_id: new ObjectId(teacher_id),
-    //     deleted_at: { $exists: true, $eq: null }
-    //   });
     
     const quizSnap = await quizCol.doc(quiz_id.trim()).get();
     const quizData: any = quizSnap.exists ? {

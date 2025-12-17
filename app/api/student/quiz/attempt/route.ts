@@ -42,28 +42,10 @@ export async function POST(req: NextRequest) {
     const token = await getToken({req, secret: process.env.QUIZIFY_NEXTAUTH_SECRET});
     const student_id: string|undefined = token?.user_id?.toString();
 
-    
-
     // Mengecek apakah student_id dan quiz_id sudah diinputkan
     if(!quiz_id || !student_id) {
       return NextResponse.json("Quiz ID and Student ID must be a valid value!", { status: 400 });
     }
-    
-    // MongoDB Code
-    // // Ambil quiz dari database
-    // const quiz = await database
-    //   .collection("quizzes")
-    //   .findOne({ _id: new ObjectId(quiz_id), deleted_at: { $exists: true, $eq: null } });
-    // if(!quiz) {
-    //   return NextResponse.json("Quiz Not Found", { status: 404 });
-    // }
-    // 
-    // const student = await database
-    //   .collection("students")
-    //   .findOne({ _id: new ObjectId(student_id) });
-    // if(!student) {
-    //   return NextResponse.json("Student Not Found", { status: 404 });
-    // }
 
     const quizSnap = await quizCol.doc(quiz_id).get();
     const quizData: any = {
@@ -100,39 +82,6 @@ export async function POST(req: NextRequest) {
     // Jika student masih mengerjakan quiz, cek waktu quiz yang sedang dikerjakan
     // Jika waktu quiz yang sedang dikerjakan sudah berakhir, maka submit paksa quiz sekarang dan student bisa mengerjakan quiz yang baru
     if(studentData.cur_quiz_id) {
-      // // MongoDB Code
-      // const cur_quiz = await database
-      //   .collection("quizzes")
-      //   .findOne({ _id: new ObjectId(student.cur_quiz_id+""), deleted_at: { $exists: true, $eq: null } });
-      // 
-      // const session = client.startSession();
-      // try {
-      //   session.startTransaction();
-      //   await database
-      //     .collection<Document>("students")
-      //     .updateOne({ _id: new ObjectId(student_id) }, {
-      //       $set: { cur_quiz_id: "" },
-      //       $push: { quiz_done: new ObjectId(student.cur_quiz_id+"") },
-      //       $pull: { quiz_joined: new ObjectId(student.cur_quiz_id+"") }
-      //     }, { session });
-      // 
-      //   await database
-      //     .collection<Document>("student_questions")
-      //     .updateMany({ student_id: new ObjectId(student_id), quiz_id: new ObjectId(student.cur_quiz_id+"") }, {
-      //       $set: { submit_date: cur_quiz!.ended_at.toDate() }
-      //     }, { session });
-      // 
-      //   await session.commitTransaction();
-      // }
-      // catch(err) {
-      //   console.log(err);
-      // 
-      //   await session.abortTransaction();
-      // }
-      // finally {
-      //   session.endSession();
-      // }
-
       const curQuizSnap = await quizCol.doc(studentData.cur_quiz_id).get();
       const curQuizData: any = {
         _id: curQuizSnap.id,
@@ -169,13 +118,6 @@ export async function POST(req: NextRequest) {
 
     // Jika belum pernah mengerjakan maka random soalnya, dan insert ke DB    
     if(!hasAttempted) {
-      // MongoDB Code
-      // // Ambil Soal urut berdasarkan sequence
-      // const quizzes = await database
-      //   .collection("quizzes")
-      //   .findOne({ _id: quizData._id, deleted_at: { $exists: true, $eq: null } });
-      // const questions: any[]  = quizzes!.questions;
-
       const questionSnaps = await quizSnap.ref.collection('questions').get();
       const questionData = questionSnaps.docs.map((doc) => ({
         _id: doc.id,
@@ -190,55 +132,6 @@ export async function POST(req: NextRequest) {
         corrected: false,
         submit_date: null
       };
-
-      // MongoDB Code
-      // // Insert ke DB
-      // const session = client.startSession();
-      // try {
-      //   // Start transaction
-      //   session.startTransaction();
-
-      //   // Insert soal yg sudah di random ke student_questions
-      //   // const insertSoal = await database
-      //   await database
-      //     .collection("student_questions")
-      //     .insertOne(randomised, { session });
-      // 
-      //   // Insert student_id ke student_attempt pada collection quizzes
-      //   // const addStudentId = await database
-      //   await database
-      //     .collection<Document>("quizzes")
-      //     .updateOne({
-      //       _id: new ObjectId(quiz._id.toString().trim()),
-      //       deleted_at: { $exists: true, $eq: null }
-      //     }, {
-      //       $push: { student_attempt: new ObjectId(student_id) },
-      //       $pull: { student_joined: new ObjectId(student_id) }
-      //     }, {
-      //       session
-      //     });
-      // 
-      //   // Set quiz_id ke cur_quiz_id students
-      //   // const insertQuizId = await database
-      //   await database
-      //     .collection<Document>("students")
-      //     .updateOne({ _id: new ObjectId(student_id) }, {
-      //       $set: { cur_quiz_id: new ObjectId(quiz._id) }
-      //     }, { session });
-      // 
-      //   // Commit transaction
-      //   await session.commitTransaction();
-      // }
-      // catch(err) {
-      //   // Rollback transaction
-      //   await session.abortTransaction(); 
-      // 
-      //   console.log(err);
-      // }
-      // finally {
-      //   // End session
-      //   session.endSession();     
-      // }
 
       const insertStudentQuestionDoc = await studentQuestionCol.add(randomised);
       const questionsCollection = insertStudentQuestionDoc.collection('questions');

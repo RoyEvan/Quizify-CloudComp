@@ -97,6 +97,7 @@ export default function Page() {
     if (teacherMessage) {
       if (teacherError) {
         toast(<Alert color={"danger"} radius="sm" title={teacherMessage} />, {
+          
           closeButton: false,
           className: "p-0 bg-black rounded-md",
         });
@@ -279,7 +280,7 @@ export default function Page() {
     <div className="flex max-h-svh  h-screen flex-col">
       <QuizifyNavbar />
 
-      <ToastContainer />
+      <ToastContainer theme="dark" />
 
       {content}
     </div>

@@ -2,11 +2,7 @@
 import QuestionCard from "@/components/QuestionCard";
 import Questions from "@/types/question";
 import { Button, Alert, Skeleton } from "@heroui/react";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-} from "@heroui/card";
+import { Card, CardBody, CardHeader } from "@heroui/card";
 import CountdownTimer from "@/components/student/CountdownTimer";
 import {
   Modal,
@@ -33,7 +29,11 @@ import { useAppSelector } from "@/lib/hooks";
 import QuizifyNavbar from "@/components/QuizifyNavbar";
 import { toast, ToastContainer } from "react-toastify";
 
-export default function Page({ params }: { params: Promise<{ quiz_id: string }> }) {
+export default function Page({
+  params,
+}: {
+  params: Promise<{ quiz_id: string }>;
+}) {
   const router = useRouter();
   let { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -51,6 +51,8 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
   const studentError = useAppSelector(selectStudentError);
 
   const [currentQuestionSeq, setCurrentQuestionSeq] = useState<number>(1);
+
+  const [sortedQuestions, setSortedQuestions] = useState([]);
 
   const { quiz_id } = use(params);
 
@@ -89,6 +91,15 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
     if (studentStatus == "idle") {
       dispatch(studentAction.fetchStudentQuizActive());
     }
+
+    if (studentStatus == "succeeded") {
+      const questions = quizActive?.questions;
+      setSortedQuestions(
+        [...questions].sort((a, b) => {
+          return a.rand_seq - b.rand_seq;
+        })
+      );
+    }
   }, [dispatch, quizActive, studentStatus, studentMessage, studentError]);
 
   const changeQuestion = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -121,7 +132,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
     }
   };
 
-  const questionNowRender = quizActive?.questions.map((item: Questions) => {
+  const questionNowRender = sortedQuestions.map((item: Questions) => {
     if (item.rand_seq === currentQuestionSeq) {
       questionNow = item;
 
@@ -138,38 +149,40 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
 
   // Aside Number Questions
   let className = "rounded-md";
-  const numberOfQuestions = quizActive?.questions.map((item: Questions, index: number) => {
-    let color: "default" | "primary" | "success" | "warning" | undefined =
-      "default";
-    const variant: "flat" | "solid" | "bordered" | undefined = "solid";
+  const numberOfQuestions = sortedQuestions.map(
+    (item: Questions, index: number) => {
+      let color: "default" | "primary" | "success" | "warning" | undefined =
+        "default";
+      const variant: "flat" | "solid" | "bordered" | undefined = "solid";
 
-    if (item.rand_seq == currentQuestionSeq) {
-      color = "primary";
-      className = "rounded-md";
-    } else if (item.answered == "1") {
-      color = "success";
-      className = "rounded-md";
-    } else if (item.answered == "2") {
-      color = "warning";
-      className = "rounded-md";
-    } else {
-      className = "rounded-md bg-white text-black";
+      if (item.rand_seq == currentQuestionSeq) {
+        color = "primary";
+        className = "rounded-md";
+      } else if (item.answered == "1") {
+        color = "success";
+        className = "rounded-md";
+      } else if (item.answered == "2") {
+        color = "warning";
+        className = "rounded-md";
+      } else {
+        className = "rounded-md bg-white text-black";
+      }
+
+      return (
+        <Button
+          key={`key-${item.rand_seq}`}
+          isIconOnly
+          color={color}
+          className={className}
+          variant={variant}
+          onClickCapture={changeQuestion}
+          data-question={item.rand_seq}
+        >
+          {index + 1}
+        </Button>
+      );
     }
-
-    return (
-      <Button
-        key={`key-${item.rand_seq}`}
-        isIconOnly
-        color={color}
-        className={className}
-        variant={variant}
-        onClickCapture={changeQuestion}
-        data-question={item.rand_seq}
-      >
-        {index + 1}
-      </Button>
-    );
-  });
+  );
 
   const handleSubmit = () => {
     setModalValue({
@@ -313,7 +326,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
                 <p className="font-bold">Tandai Soal Ini</p>
               </Button>
             )}
-            {currentQuestionSeq == quizActive.questions.length ? (
+            {currentQuestionSeq == sortedQuestions.length ? (
               <Button
                 className="rounded-md"
                 color="primary"

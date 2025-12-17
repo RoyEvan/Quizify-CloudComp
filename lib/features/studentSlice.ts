@@ -273,9 +273,9 @@ const studentSlice = createSlice({
       })
       .addCase(putStudentUpdateAnswer.fulfilled, (state, action) => {
         const questionToUpdate = state.quizActive.questions.find(
-          (question) => question.id === action.payload.data.question_id
+          (question) => question._id === action.payload.data.question_id
         );
-
+        
         if (questionToUpdate) {
           questionToUpdate.answer = action.payload.data.answer;
           questionToUpdate.answered = action.payload.data.answered;

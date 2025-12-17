@@ -617,7 +617,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
                                     key={field.id}
                                     value={index.toString()}
                                   >
-                                    <div className="flex items-center w-full">
+                                    <div className="pilgan-item flex items-center w-full">
                                       <div className="pilgan font-bold bg-neutral-700 rounded-sm flex aspect-square h-fit w-8 mr-2 justify-center items-center">
                                         {String.fromCharCode(
                                           "A".charCodeAt(0) + index
@@ -748,7 +748,9 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string }> 
     <div className="flex max-h-svh h-screen justify-center items-center flex-col">
       <QuizifyNavbar />
 
-      <ToastContainer />
+      <ToastContainer 
+        theme="dark"
+      />
       <Modal
         backdrop="blur"
         className="rounded-md"

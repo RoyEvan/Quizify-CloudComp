@@ -10,7 +10,6 @@ const QuestionCard = (props: Questions) => {
   const [answer, setAnswer] = useState<string>(props.answer.toString());
   const changeAnswer = (newAns: string) => {
     setAnswer(newAns);
-
     props.updateAnswer(newAns);
   };
 

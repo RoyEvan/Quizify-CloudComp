@@ -1,35 +1,12 @@
-import gcloudCredentials from "@/lib/storage/gcp/gcloud";
+import enqueueCloudRun from "@/lib/storage/gcp/tasks";
 import { quizCol } from "@/types/collections/quizCol";
 import { studentCol } from "@/types/collections/studentCol";
 import { studentQuestionCol } from "@/types/collections/studentQuestionCol";
-import { CloudTasksClient } from "@google-cloud/tasks";
 import { FieldValue } from "firebase-admin/firestore";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-async function enqueueCloudRun(payload: { student_id: string, quiz_id: string, teacher_id: string }) {
-  const client = new CloudTasksClient();
-  const parent = client.queuePath(gcloudCredentials.project_id, gcloudCredentials.region, 'quiz-correction-queue');
-
-  const task = {
-    httpRequest: {
-      httpMethod: "POST" as const,
-      url: gcloudCredentials.cloud_run_function_url,
-      headers: { "Content-Type": "application/json" },
-      body: Buffer.from(JSON.stringify(payload)).toString("base64"),
-
-      // This is the only “auth” part you need. Cloud Tasks generates the token.
-      oidcToken: {
-        serviceAccountEmail: gcloudCredentials.client_email,
-        // Optional but recommended for Cloud Run:
-        audience: gcloudCredentials.cloud_run_function_url,
-      },
-    },
-  };
-
-  await client.createTask({ parent, task });
-  // Return immediately; do not await Cloud Run execution.
-}
+export const runtime = "nodejs";
 
 // Submit Quiz
 export async function POST(req: NextRequest) {
@@ -97,7 +74,7 @@ export async function POST(req: NextRequest) {
     }, { status: 200 });
     
   } catch (err) {
-    console.log(err);
+    console.log(err.message);
   }
 
   return NextResponse.json("Gagal!", { status: 500 });
@@ -205,7 +182,7 @@ export async function GET(req: NextRequest){
     }, { status: 200 });
   }
   catch (err) {
-    console.log(err); 
+    console.log(err.message); 
   }
   return NextResponse.json("Gagal!", { status: 500 });
 }

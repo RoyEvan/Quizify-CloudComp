@@ -7,7 +7,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-async function enqueueCloudRun(payload: { student_id: string; quiz_id: string; teacher_id: string; }) {
+async function enqueueCloudRun(payload: { student_id: string, quiz_id: string, teacher_id: string }) {
   const client = new CloudTasksClient();
   const parent = client.queuePath(gcloudCredentials.project_id, gcloudCredentials.region, 'quiz-correction-queue');
 

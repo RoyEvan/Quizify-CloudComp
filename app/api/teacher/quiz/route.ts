@@ -154,20 +154,21 @@ export async function DELETE(req: NextRequest) {
     const request = await req.json();
     
     const teacher_id: string | undefined = token?.user_id?.toString();
-    const quiz_id: string = request.quiz_id.toString();
+    const quiz_id: string = request.quiz_id;
 
     if(!quiz_id) {
       return NextResponse.json("Invalid Quiz ID", { status: 400 });
     }
     
-    const quizSnap = await quizCol
-      .where('quiz_id', '==', quiz_id)
-      .where('teacher_id', '==', teacher_id)
-      .get();
-    if(quizSnap.empty) {
+    const quizSnap = await quizCol.doc(quiz_id).get();
+    if(!quizSnap.exists) {
       return NextResponse.json("Quiz Not Found", { status: 404 });
     }
-    const quizData: any = quizSnap.docs[0].exists ? { _id: quizSnap.docs[0].id, ...quizSnap.docs[0].data() } : null;
+    if(quizSnap.data()!.teacher_id !== teacher_id) {
+      return NextResponse.json("Unauthorized!", { status: 401 });
+    }
+
+    const quizData: any = quizSnap.exists ? { _id: quizSnap.id, ...quizSnap.data() } : null;
     if(quizData.deleted_at) {
       return NextResponse.json("Quiz has been deleted!", { status: 404 });
     }
@@ -182,11 +183,11 @@ export async function DELETE(req: NextRequest) {
       return doc;
     }));
 
-    await quizSnap.docs[0].ref.update({ deleted_at: new Date() });
+    await quizSnap.ref.update({ deleted_at: new Date() });
     
     return NextResponse.json({
       msg: "Quiz successfully deleted!",
-      data: { quiz_id }
+      data: { _id: quiz_id }
     }, { status: 200 });
   }
   catch(err) {

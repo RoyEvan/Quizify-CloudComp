@@ -1,12 +1,10 @@
-import "server-only";
 import gcloudCredentials from "./gcloud";
-import { CloudTasksClient } from "@google-cloud/tasks";
 import { GoogleAuth } from "google-auth-library";
 
 type Payload = { student_id: string; quiz_id: string; teacher_id: string; }
 
 export default async function enqueueCloudRun(payload: Payload): Promise<{ message: string; status: number }> {
-  const createTaskUrl = `https://cloudtasks.googleapis.com/v2/projects/${gcloudCredentials.project_id}/locations/${gcloudCredentials.region}/queues/quiz-correction-queue/tasks`;
+  const createTaskUrl = `https://cloudtasks.googleapis.com/v2/projects/${gcloudCredentials.project_id}/locations/${gcloudCredentials.region}/queues/quizify-correction-queue/tasks`;
 
   // Get an access token using ADC (works on App Engine)
   const auth = new GoogleAuth({

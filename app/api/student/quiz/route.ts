@@ -6,8 +6,6 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 // Submit Quiz
 export async function POST(req: NextRequest) {
   try {
@@ -74,7 +72,7 @@ export async function POST(req: NextRequest) {
     }, { status: 200 });
     
   } catch (err) {
-    console.log(err.message);
+    console.log(err);
   }
 
   return NextResponse.json("Gagal!", { status: 500 });

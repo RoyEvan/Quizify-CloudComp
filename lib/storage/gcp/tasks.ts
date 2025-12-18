@@ -23,7 +23,7 @@ export default async function enqueueCloudRun(payload: Payload): Promise<{ messa
   const task = {
     httpRequest: {
       httpMethod: "POST" as const,
-      url: `${gcloudCredentials.cloud_run_function_url}/quizCorrection`,
+      url: `${gcloudCredentials.cloud_run_function_url}`,
       headers: { "Content-Type": "application/json" },
       body: Buffer.from(JSON.stringify(payload)).toString("base64"),
       oidcToken: {

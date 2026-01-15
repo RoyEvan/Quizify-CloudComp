@@ -1,4 +1,4 @@
-import enqueueCloudRun from "@/lib/storage/gcp/tasks";
+import enqueueTask from "@/lib/storage/gcp/tasks";
 import { quizCol } from "@/types/collections/quizCol";
 import { studentCol } from "@/types/collections/studentCol";
 import { studentQuestionCol } from "@/types/collections/studentQuestionCol";
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       deleted_at: quizSnap.data()!.deleted_at?.toDate() || null,
     };
 
-    await enqueueCloudRun({
+    await enqueueTask({
       student_id: student_id,
       quiz_id: quizData._id,
       teacher_id: quizData.teacher_id

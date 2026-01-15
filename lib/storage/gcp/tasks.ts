@@ -3,7 +3,7 @@ import { GoogleAuth } from "google-auth-library";
 
 type Payload = { student_id: string; quiz_id: string; teacher_id: string; }
 
-export default async function enqueueCloudRun(payload: Payload): Promise<{ message: string; status: number }> {
+export default async function enqueueTask(payload: Payload): Promise<{ message: string; status: number }> {
   const createTaskUrl = `https://cloudtasks.googleapis.com/v2/projects/${gcloudCredentials.project_id}/locations/${gcloudCredentials.region}/queues/quizify-correction-queue/tasks`;
 
   // Get an access token using ADC (works on App Engine)
@@ -21,16 +21,18 @@ export default async function enqueueCloudRun(payload: Payload): Promise<{ messa
   }
 
   const task = {
-    httpRequest: {
-      httpMethod: "POST" as const,
-      url: `${gcloudCredentials.cloud_run_function_url}`,
-      headers: { "Content-Type": "application/json" },
-      body: Buffer.from(JSON.stringify(payload)).toString("base64"),
-      oidcToken: {
-        serviceAccountEmail: gcloudCredentials.client_email,
-        audience: gcloudCredentials.cloud_run_function_url,
-      },
-    },
+    task: {
+      httpRequest: {
+        httpMethod: "POST" as const,
+        url: `${gcloudCredentials.cloud_run_function_url}`,
+        headers: { "Content-Type": "application/json" },
+        body: Buffer.from(JSON.stringify(payload)).toString("base64"),
+        oidcToken: {
+          serviceAccountEmail: gcloudCredentials.client_email,
+          audience: gcloudCredentials.cloud_run_function_url,
+        }
+      }
+    }
   };
 
   const resp = await fetch(createTaskUrl, {
@@ -39,7 +41,7 @@ export default async function enqueueCloudRun(payload: Payload): Promise<{ messa
       Authorization: `Bearer ${accessToken.token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(task),
+    body: JSON.stringify(task)
   });
 
   if (!resp.ok) {

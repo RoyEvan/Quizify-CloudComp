@@ -3,20 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.17.3",
-    "@google-cloud/tasks": "^6.2.1",
     "@heroui/react": "^2.8.5",
     "@hookform/resolvers": "^5.2.2",
     "@reduxjs/toolkit": "^2.10.1",
     "@tailwindcss/cli": "^4.1.17",
     "file-type": "^21.1.0",
     "firebase-admin": "^13.6.0",
+    "google-auth-library": "^10.5.0",
     "joi": "^18.0.1",
     "lucide-react": "^0.554.0",
     "next": "16.0.10",

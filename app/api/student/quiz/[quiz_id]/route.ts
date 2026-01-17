@@ -46,7 +46,11 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{quiz_id:
       return NextResponse.json("Student has not submitted this quiz!", { status: 404 })
     }
 
-    const studentQuestionData: any = {_id: studentQuestionSnap.docs[0].id, ...studentQuestionSnap.docs[0].data()};
+    const studentQuestionData: any = {
+      _id: studentQuestionSnap.docs[0].id,
+      ...studentQuestionSnap.docs[0].data(),
+      submit_date: studentQuestionSnap.docs[0].data().submit_date?.toDate() || null,
+    };
     if(!studentQuestionData.corrected) {
       return NextResponse.json("Student answers has not been corrected for this quiz!", { status: 404 });
     }

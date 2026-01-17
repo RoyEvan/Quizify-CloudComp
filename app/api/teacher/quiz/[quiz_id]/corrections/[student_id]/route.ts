@@ -177,25 +177,25 @@ export async function PUT(req: NextRequest, {params}: {params:  Promise<{ quiz_i
       .where('quiz_id', '==', quizId)
       .where('student_id', '==', studentId)
       .get();
-    const studentQuestionData: any = !studentQuestionSnap.empty ? {
-      _id: studentQuestionSnap.docs[0].id,
-      ...studentQuestionSnap.docs[0].data()
-    } : null;
-    if(!studentQuestionData) {
+    if(!studentQuestionSnap.empty) {
       return NextResponse.json("Student have not attempted to this quiz!", { status: 404 });
     }
+    const studentQuestionData: any = {
+      _id: studentQuestionSnap.docs[0].id,
+      ...studentQuestionSnap.docs[0].data()
+    };
 
-    const questionSnaps = await studentQuestionCol.doc(studentQuestionData?._id).collection('questions').get();
-    const questionData: any = questionSnaps.docs.map((doc) => {
-      return { id: doc.id, ...doc.data() };
-    });
+    const questionSnaps = await studentQuestionCol.doc(studentQuestionData._id).collection('questions').get();
+    const questionData: any = questionSnaps.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
+    let score = 0;
     const corrections = questions.map((corrected: any) => {      
       // Jawaban Siswa
       const sq_answer = questionData.find((ans: any) => ans.question_id == corrected.id);   
       sq_answer.correct_answer = (corrected.answer_key == corrected.answer);
       sq_answer.corrected = true;
       sq_answer.points = corrected.points;
+      score += sq_answer.points;
       return sq_answer;
     });
 
@@ -209,10 +209,6 @@ export async function PUT(req: NextRequest, {params}: {params:  Promise<{ quiz_i
           points: corrected.points
         });
     }));
-
-    const score = corrections.reduce((acc: number, curr: any) => {
-      return acc + curr.points;
-    }, 0);
     
     await studentQuestionSnap.docs[0].ref.update({
       score: score,

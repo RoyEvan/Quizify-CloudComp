@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       msg: "Quiz successfully joined!",
       data: {
-        quiz_id: quizData._id,
+        _id: quizData._id,
         title: quizData.title,
         quiz_started: quizData.opened_at,
         quiz_ended: quizData.ended_at

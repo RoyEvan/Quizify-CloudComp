@@ -12,20 +12,13 @@ export default function Page() {
       image: "/team_member/Albert.jpeg", // Ganti dengan jalur gambar yang sesuai
     },
     {
-      name: "Bima Aqsa Prasetya",
-      position: "222310663",
-      description: "Frontend Developer",
-      image: "/team_member/Bima.jpeg", // Ganti dengan jalur gambar yang sesuai
-    },
-    {
       name: "Kevin Jonathan Halim",
       position: "222310664",
       description: "Frontend Developer",
       image: "/team_member/Kevin.jpg", // Ganti dengan jalur gambar yang sesuai
     },
-
     {
-      name: "RAYMOND LYANTO HOENTORO",
+      name: "Raymond Lyanto Hoentoro",
       position: "222310667",
       description: "Backend Developer",
       image: "/team_member/Raymond.jpeg", // Ganti dengan jalur gambar yang sesuai
@@ -42,16 +35,27 @@ export default function Page() {
     <>
       <QuizifyNavbar />
       <div className="team-page">
-        <h1>Meet Our Team</h1>
+        <div className="team-page__header">
+          <h1>Meet Our Team</h1>
+          <p>Quizify</p>
+        </div>
+        
         <div className="team-page__members">
           {teamMembers.map((member, index) => (
-            <TeamMember
-              key={index}
-              image={member.image}
-              name={member.name}
-              position={member.position}
-              description={member.description}
-            />
+            <div className="team-member" key={index}>
+              <div className="team-member__image-wrapper">
+                <img 
+                  src={member.image} 
+                  alt={member.name} 
+                  className="team-member__image"
+                />
+              </div>
+              <div className="team-member__info">
+                <h3 className="team-member__name">{member.name}</h3>
+                <p className="team-member__position">{member.position}</p>
+                <p className="team-member__description">{member.description}</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>

@@ -53,3 +53,137 @@ div:has(>.pilgan-item) {
   gap: 8px;
 }
 
+
+
+/* ===================================================================================== */
+/* NEXT.JS / VERCEL INSPIRED MONOCHROMATIC THEME (DARK MODE - HARDCODED) */
+
+.team-page {
+  background-color: #000000; /* Latar belakang hitam */
+  color: #ffffff;            /* Teks utama putih */
+  padding: 80px 40px;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.team-page__header {
+  text-align: center;
+  margin-bottom: 60px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.team-page__header h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  margin-bottom: 10px;
+  /* Gradasi dibalik: Putih ke Abu-abu terang */
+  background: #fff;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.team-page__header p {
+  color: #a1a1a1; /* Abu-abu medium untuk teks pendukung */
+  font-size: 1.125rem;
+}
+
+/* GRID LAYOUT: 4 KOLOM */
+.team-page__members {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* CARD COMPONENT */
+.team-member {
+  background-color: #000000;
+  border: 1px solid #333333; /* Border gelap */
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Efek Hover: Border menjadi putih menyala */
+.team-member:hover {
+  border-color: #ffffff;
+  transform: translateY(-2px);
+  /* Shadow halus warna putih transparan untuk efek glow */
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05);
+}
+
+/* IMAGE WRAPPER */
+.team-member__image-wrapper {
+  width: 100%;
+  aspect-ratio: 3 / 4; 
+  background-color: #111111; /* Latar gambar sedikit lebih terang dari hitam murni */
+  overflow: hidden;
+  border-bottom: 1px solid #333333;
+}
+
+.team-member__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center; 
+  transition: transform 0.5s ease;
+  filter: grayscale(20%); /* Sedikit grayscale agar menyatu dengan tema dark */
+}
+
+.team-member:hover .team-member__image {
+  transform: scale(1.03);
+  filter: grayscale(0%);
+}
+
+/* TEXT INFO */
+.team-member__info {
+  padding: 24px;
+  text-align: left;
+}
+
+.team-member__name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.team-member__position {
+  font-size: 0.875rem;
+  color: #a1a1a1;
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.team-member__description {
+  font-size: 0.9rem;
+  color: #ededed; /* Putih tulang agar tidak terlalu silau */
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .team-page__members {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .team-page__members {
+    grid-template-columns: 1fr;
+  }
+  
+  .team-page__header h1 {
+    font-size: 2.5rem;
+  }
+}

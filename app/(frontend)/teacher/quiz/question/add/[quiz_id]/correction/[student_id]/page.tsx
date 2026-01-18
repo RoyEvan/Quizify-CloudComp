@@ -281,7 +281,7 @@ export default function Page({ params }: { params: Promise<{ quiz_id: string; st
     <div className="flex max-h-svh h-screen justify-center items-center flex-col">
       <QuizifyNavbar />
 
-      <ToastContainer />
+      <ToastContainer theme="dark"/>
 
       {content}
     </div>

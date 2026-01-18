@@ -183,7 +183,7 @@ export default function Page({
     <div className="flex max-h-svh h-screen justify-center items-center flex-col">
       <QuizifyNavbar />
 
-      <ToastContainer />
+      <ToastContainer theme="dark"/>
       <Modal
         backdrop="blur"
         className="rounded-md"

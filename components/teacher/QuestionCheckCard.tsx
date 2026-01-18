@@ -46,7 +46,7 @@ const QuestionCheckCard = ({ index, item, quizDetail, updateNilai }) => {
           classNames={{
             base: cn(
               // Normal COndition
-              "opacity-100 m-0 px-0 bg-neutral-950 w-full items-start pe-2 max-w-full rounded-md border-1 border-neutral-700",
+              "pilgan-item opacity-100 m-0 px-0 bg-neutral-950 w-full items-start pe-2 max-w-full rounded-md border-1 border-neutral-700",
               "data-[selected=true]:border-primary"
             ),
           }}

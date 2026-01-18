@@ -67,7 +67,7 @@ const QuizCreatedCard: React.FC<QuizCreatedCardProps> = ({
           </span>
           <span className="text-large flex items-center gap-2">
             <CalendarCheck />
-            {new Date(item.quiz_started).toLocaleString(undefined, {
+            {new Date(item.quiz_ended).toLocaleString(undefined, {
               day: "numeric",
               month: "long",
               year: "numeric",

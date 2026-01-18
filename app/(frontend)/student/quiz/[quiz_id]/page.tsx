@@ -366,7 +366,7 @@ export default function Page({
   return (
     <div className="student-quiz flex h-screen max-h-svh flex-col">
       <QuizifyNavbar />
-      <ToastContainer />
+      <ToastContainer theme="dark"/>
 
       {/* MODAL */}
       <Modal
@@ -395,7 +395,7 @@ export default function Page({
         </ModalContent>
       </Modal>
 
-      <ToastContainer />
+      <ToastContainer theme="dark"/>
 
       {content}
     </div>
